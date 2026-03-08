@@ -8,7 +8,7 @@ const MobileMenu = ({ dbUser }: { dbUser: IUser | null }) => {
   const [menuOpen, setMenuOpen] = useState(false);
   return (
     <>
-      <div className="relative">
+      <div className="relative md:hidden">
         {menuOpen ?
           <button
             onClick={() => setMenuOpen(!menuOpen)}

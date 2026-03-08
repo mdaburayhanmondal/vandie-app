@@ -9,7 +9,7 @@ const Navbar = async () => {
   const dbUser = await syncUser();
 
   return (
-    <nav className="flex items-center justify-between">
+    <nav className="w-full mx-auto flex items-center justify-between p-4">
       <Link href={'/'} className="text-2xl font-semibold italic">
         Vandie
       </Link>
