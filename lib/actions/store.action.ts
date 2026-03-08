@@ -2,6 +2,8 @@ import { auth } from '@clerk/nextjs/server';
 import { connectToDatabase } from '../db';
 import Store from '../models/store.model';
 import { redirect } from 'next/navigation';
+import User from '../models/user.model';
+import { revalidatePath } from 'next/cache';
 
 export async function createStore(formData: FormData) {
   'use server';
@@ -35,4 +37,48 @@ export async function createStore(formData: FormData) {
     console.error('Error creating store:', err);
   }
   redirect('/');
+}
+
+export async function fetchVandyApplications() {
+  await connectToDatabase();
+  const vandyApplications = await Store.find({
+    applicationStatus: 'pending',
+  }).lean();
+
+  if (!vandyApplications) {
+    return null;
+  }
+  return JSON.parse(JSON.stringify(vandyApplications));
+}
+
+export async function approveApplication(storeId: string) {
+  'use server';
+  try {
+    await connectToDatabase();
+    const updatedStore = await Store.findByIdAndUpdate(
+      storeId,
+      { applicationStatus: 'approved' },
+      { new: true },
+    ).lean();
+    const updatedUser = await User.findOneAndUpdate(
+      { clerkId: updatedStore.ownerId },
+      { role: 'vandy' },
+    );
+    revalidatePath('/admin-dashboard');
+  } catch (err) {
+    console.error(err);
+    throw new Error('Failed to approve');
+  }
+}
+
+export async function rejectApplication(storeId: string) {
+  'use server';
+  await connectToDatabase();
+
+  const updatedStore = await Store.findByIdAndUpdate(
+    storeId,
+    { applicationStatus: 'rejected' },
+    { new: true },
+  ).lean();
+  revalidatePath('/admin-dashboard');
 }
