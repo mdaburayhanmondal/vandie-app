@@ -6,7 +6,7 @@ export default function Home() {
       <header className="p-4 max-w-7xl mx-auto">
         <Navbar />
       </header>
-      <main className="min-h-screen p-4 max-w-7xl mx-auto">Main</main>
+      <main className="min-h-screen max-w-7xl mx-auto">Main</main>
       <footer>Footer</footer>
     </>
   );
