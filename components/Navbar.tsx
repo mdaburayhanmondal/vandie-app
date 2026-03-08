@@ -7,7 +7,6 @@ import MobileMenu from './MobileMenu';
 
 const Navbar = async () => {
   const dbUser = await syncUser();
-  console.log(dbUser?.role);
 
   return (
     <nav className="flex items-center justify-between">
