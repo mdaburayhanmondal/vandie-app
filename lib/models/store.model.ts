@@ -27,6 +27,8 @@ const StoreSchema = new Schema(
     bio: {
       type: String,
       required: true,
+      minLength: 20,
+      maxLength: 250,
     },
     location: {
       type: String,
