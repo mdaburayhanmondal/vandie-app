@@ -82,3 +82,14 @@ export async function rejectApplication(storeId: string) {
   ).lean();
   revalidatePath('/admin-dashboard');
 }
+
+export async function getVandies() {
+  try {
+    await connectToDatabase();
+    const vandies = await Store.find().sort({ storeName: 1 }).lean();
+    return vandies;
+  } catch (err) {
+    console.error(err);
+    throw new Error('Failed to load vandies');
+  }
+}

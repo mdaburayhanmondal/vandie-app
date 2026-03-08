@@ -4,14 +4,20 @@ import {
   fetchVandyApplications,
   rejectApplication,
 } from '@/lib/actions/store.action';
+import { syncUser } from '@/lib/actions/user.actions';
 import { IStore } from '@/lib/models/store.model';
+import { redirect } from 'next/navigation';
 
 const AdminDashboardPage = async () => {
   const vandyApplications = await fetchVandyApplications();
+  const dbUser = await syncUser();
+
+  if (dbUser.role !== 'admin') {
+    redirect('/');
+  }
   return (
     <>
-      <Navbar />
-      <main>
+      <main className="min-h-screen max-w-7xl mx-auto">
         <section className="flex flex-col gap-y-6 py-8">
           <h1 className="text-2xl text-center font-semibold">Vandy Requests</h1>
           {vandyApplications.length > 0 ?
