@@ -16,7 +16,6 @@ export async function createStore(formData: FormData) {
     const location = formData.get('location') as string;
 
     await connectToDatabase();
-
     const existingStore = await Store.findOne({ ownerId: userId }).lean();
     if (existingStore) {
       throw new Error(
