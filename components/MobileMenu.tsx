@@ -5,7 +5,7 @@ import { BiArrowFromBottom, BiArrowFromTop } from 'react-icons/bi';
 import { useState } from 'react';
 
 const MobileMenu = ({ dbUser }: { dbUser: IUser | null }) => {
-  const [menuOpen, setMenuOpen] = useState(true);
+  const [menuOpen, setMenuOpen] = useState(false);
   return (
     <>
       <div className="relative">
