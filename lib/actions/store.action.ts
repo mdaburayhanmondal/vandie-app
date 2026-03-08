@@ -86,8 +86,13 @@ export async function rejectApplication(storeId: string) {
 export async function getVandies() {
   try {
     await connectToDatabase();
-    const vandies = await Store.find().sort({ storeName: 1 }).lean();
-    return vandies;
+    const vandies = await Store.find({ applicationStatus: 'approved' })
+      .sort({ storeName: 1 })
+      .lean();
+    if (vandies.length <= 0) {
+      return null;
+    }
+    return JSON.parse(JSON.stringify(vandies));
   } catch (err) {
     console.error(err);
     throw new Error('Failed to load vandies');
