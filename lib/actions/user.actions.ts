@@ -10,7 +10,7 @@ export async function syncUser() {
     if (!clerkUser) return null;
 
     await connectToDatabase();
-    const existingUser = await User.findOne({ clerkId: clerkUser.id }).lean();
+    const existingUser = await User.findOne({ clerkId: clerkUser?.id }).lean();
     if (existingUser) {
       return JSON.parse(JSON.stringify(existingUser));
     }
@@ -28,6 +28,5 @@ export async function syncUser() {
     return JSON.parse(JSON.stringify(newUser));
   } catch (err) {
     console.error(err);
-    throw new Error('Failed to sync user');
   }
 }

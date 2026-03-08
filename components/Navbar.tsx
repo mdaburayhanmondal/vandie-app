@@ -1,3 +1,4 @@
+'use server';
 import { syncUser } from '@/lib/actions/user.actions';
 import { Show, SignInButton, SignUpButton, UserButton } from '@clerk/nextjs';
 import Link from 'next/link';
