@@ -27,7 +27,7 @@ export async function addItem(formData: FormData) {
     const isAvailable = formData.get('isAvailable') === 'true';
 
     if (!name || isNaN(price) || !category) {
-      throw new Error('Please fill all required fields.');
+      throw new Error('Please provide a valid name, price, and category.');
     }
 
     await Item.create({
@@ -43,8 +43,8 @@ export async function addItem(formData: FormData) {
     revalidatePath('/vandy-dashboard');
 
     return { success: true };
-  } catch (err) {
+  } catch (err: any) {
     console.error('Error adding item:', err);
-    return { success: false };
+    return { success: false, error: err.message };
   }
 }
