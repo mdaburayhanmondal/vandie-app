@@ -3,7 +3,7 @@ import {
   approveApplication,
   fetchVandyApplications,
   rejectApplication,
-} from '@/lib/actions/store.action';
+} from '@/lib/actions/store.actions';
 import { syncUser } from '@/lib/actions/user.actions';
 import { IStore } from '@/lib/models/store.model';
 import { redirect } from 'next/navigation';

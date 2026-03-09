@@ -1,4 +1,4 @@
-import { createStore } from '@/lib/actions/store.action';
+import { createStore } from '@/lib/actions/store.actions';
 import { connectToDatabase } from '@/lib/db';
 import Store from '@/lib/models/store.model';
 import { auth } from '@clerk/nextjs/server';

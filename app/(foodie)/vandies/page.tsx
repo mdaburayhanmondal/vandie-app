@@ -1,4 +1,4 @@
-import { getVandies } from '@/lib/actions/store.action';
+import { getVandies } from '@/lib/actions/store.actions';
 import { IStore } from '@/lib/models/store.model';
 
 const VandiesPage = async () => {
