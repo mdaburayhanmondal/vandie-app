@@ -43,9 +43,11 @@ export async function addItem(formData: FormData) {
     revalidatePath('/vandy-dashboard');
 
     return { success: true };
-  } catch (err: any) {
-    console.error('Error adding item:', err);
-    return { success: false, error: err.message };
+  } catch (err: unknown) {
+    const errorMessage =
+      err instanceof Error ? err.message : 'An unexpected error occurred';
+    console.error('Error adding item:', errorMessage);
+    return { success: false, error: errorMessage };
   }
 }
 
