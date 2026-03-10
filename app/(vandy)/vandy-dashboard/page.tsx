@@ -40,7 +40,7 @@ const VandyDashboard = async () => {
         {items.map((item: IItem, index: number) => (
           <li
             key={item._id}
-            className="w-full grid grid-cols-[3fr_1fr_1fr_2fr_1fr] items-center p-4 bg-white shadow-sm border rounded-lg hover:shadow-md transition-shadow"
+            className="w-full grid grid-cols-[3fr_1fr_1fr_2fr_1fr] gap-2 items-center p-4 bg-white shadow-sm border rounded-lg hover:shadow-md transition-shadow"
           >
             <div className="flex gap-x-4 items-center">
               <span className="bg-gray-100 text-gray-600 text-xs font-bold px-2 py-1 rounded">
