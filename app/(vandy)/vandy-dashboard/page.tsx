@@ -77,7 +77,12 @@ const VandyDashboard = async () => {
                   <FaEdit size={18} />
                 </Link>
 
-                <form action={deleteAction}>
+                <form
+                  action={async () => {
+                    'use server';
+                    await deleteItem(item._id as string);
+                  }}
+                >
                   <button
                     type="submit"
                     className="text-red-400 hover:text-red-600 transition-colors"
