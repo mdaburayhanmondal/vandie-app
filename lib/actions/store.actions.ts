@@ -4,6 +4,7 @@ import Store from '../models/store.model';
 import { redirect } from 'next/navigation';
 import User from '../models/user.model';
 import { revalidatePath } from 'next/cache';
+import Item from '../models/item.model';
 
 export async function createStore(formData: FormData) {
   'use server';
@@ -96,5 +97,22 @@ export async function getVandies() {
   } catch (err) {
     console.error(err);
     throw new Error('Failed to load vandies');
+  }
+}
+
+export async function getVandyDetails(vandyId: string) {
+  try {
+    await connectToDatabase();
+    const vandy = await Store.findOne({ ownerId: vandyId }).lean();
+    if (!vandy) {
+      return null;
+    }
+    const items = await Item.find({ ownerId: vandyId })
+      .sort({ category: 1 })
+      .lean();
+    return JSON.parse(JSON.stringify({ vandy, items }));
+  } catch (err) {
+    console.error('Database Error:', err);
+    return null;
   }
 }
