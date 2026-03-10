@@ -5,6 +5,7 @@ import { connectToDatabase } from '../db';
 import Item, { IItem } from '../models/item.model';
 import User from '../models/user.model';
 import { revalidatePath } from 'next/cache';
+import Store from '../models/store.model';
 
 export async function addItem(formData: FormData) {
   try {
@@ -142,5 +143,37 @@ export async function deleteItem(itemId: string) {
 
     console.error('Error deleting item:', errorMessage);
     return { success: false, error: errorMessage };
+  }
+}
+
+export async function getAllAvailableItems() {
+  try {
+    await connectToDatabase();
+
+    const availableItems = await Item.find({ isAvailable: true })
+      .sort({ createdAt: -1 })
+      .lean();
+    if (!availableItems || availableItems.length === 0) {
+      return [];
+    }
+
+    const ownerIds = [...new Set(availableItems.map((item) => item.ownerId))];
+    const stores = await Store.find({ ownerId: { $in: ownerIds } }).lean();
+
+    const itemsWithStore = availableItems.map((item) => {
+      const storeInfo = stores.find((store) => store.ownerId === item.ownerId);
+      return {
+        ...item,
+        storeName: storeInfo?.storeName || 'Unknown Vandy',
+        location: storeInfo?.location || 'Unknown Location',
+        isVandyLive: storeInfo?.isLive || false,
+      };
+    });
+
+    return JSON.parse(JSON.stringify(itemsWithStore));
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : 'Unknown error';
+    console.error('Error fetching marketplace items:', msg);
+    return [];
   }
 }
