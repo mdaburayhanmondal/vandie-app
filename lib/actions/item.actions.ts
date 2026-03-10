@@ -24,7 +24,7 @@ export async function addItem(formData: FormData) {
     const description = formData.get('description') as string;
     const imageUrl = formData.get('image') as string;
 
-    const isAvailable = formData.get('isAvailable') === 'true';
+    const isAvailable = !!formData.get('isAvailable');
 
     if (!name || isNaN(price) || !category) {
       throw new Error('Please provide a valid name, price, and category.');
@@ -46,5 +46,17 @@ export async function addItem(formData: FormData) {
   } catch (err: any) {
     console.error('Error adding item:', err);
     return { success: false, error: err.message };
+  }
+}
+
+export async function getMyItems() {
+  const { userId } = await auth();
+
+  try {
+    await connectToDatabase();
+    const items = await Item.find({ ownerId: userId }).sort({ name: 1 }).lean();
+    return JSON.parse(JSON.stringify(items));
+  } catch (err) {
+    console.error(err);
   }
 }
