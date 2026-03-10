@@ -2,7 +2,7 @@
 
 import { auth } from '@clerk/nextjs/server';
 import { connectToDatabase } from '../db';
-import Item from '../models/item.model';
+import Item, { IItem } from '../models/item.model';
 import User from '../models/user.model';
 import { revalidatePath } from 'next/cache';
 
@@ -51,12 +51,15 @@ export async function addItem(formData: FormData) {
 
 export async function getMyItems() {
   const { userId } = await auth();
+  if (!userId) throw new Error('Unauthorized!');
 
   try {
     await connectToDatabase();
     const items = await Item.find({ ownerId: userId }).sort({ name: 1 }).lean();
-    return JSON.parse(JSON.stringify(items));
+
+    return JSON.parse(JSON.stringify(items)) as IItem[];
   } catch (err) {
-    console.error(err);
+    console.error('Fetch Items Error:', err);
+    return [];
   }
 }
