@@ -1,6 +1,7 @@
-import { model, models, Schema, Document } from 'mongoose';
+import { model, models, Schema } from 'mongoose';
 
-export interface IItem extends Document {
+export interface IItem {
+  _id?: string;
   ownerId: string;
   name: string;
   price: number;
