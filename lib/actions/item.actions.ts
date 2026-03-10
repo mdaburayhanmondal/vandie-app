@@ -65,3 +65,82 @@ export async function getMyItems() {
     return [];
   }
 }
+
+export async function getItemById(itemId: string) {
+  try {
+    const { userId } = await auth();
+    if (!userId) return null;
+
+    await connectToDatabase();
+    const item = await Item.findOne({ _id: itemId, ownerId: userId }).lean();
+
+    return item ? JSON.parse(JSON.stringify(item)) : null;
+  } catch (err) {
+    console.error('Fetch Item Error:', err);
+    return null;
+  }
+}
+
+export async function updateItem(itemId: string, formData: FormData) {
+  try {
+    const { userId } = await auth();
+    if (!userId) throw new Error('Unauthorized');
+
+    await connectToDatabase();
+
+    const name = formData.get('name') as string;
+    const price = Number(formData.get('price'));
+    const category = formData.get('category') as string;
+    const description = formData.get('description') as string;
+    const imageUrl = formData.get('image') as string;
+    const isAvailable = !!formData.get('isAvailable');
+
+    const updatedItem = await Item.findOneAndUpdate(
+      { _id: itemId, ownerId: userId },
+      {
+        name,
+        price,
+        category,
+        description,
+        image: imageUrl,
+        isAvailable,
+      },
+      { new: true },
+    );
+    if (!updatedItem) throw new Error('Item not found or unauthorized');
+
+    revalidatePath('/vandy-dashboard');
+    return { success: true };
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : 'Update failed';
+    return { success: false, error: msg };
+  }
+}
+
+export async function deleteItem(itemId: string) {
+  try {
+    const { userId } = await auth();
+    if (!userId) throw new Error('You must be logged in to delete items.');
+
+    await connectToDatabase();
+
+    const deletedItem = await Item.findOneAndDelete({
+      _id: itemId,
+      ownerId: userId,
+    });
+    if (!deletedItem) {
+      throw new Error(
+        'Item not found or you do not have permission to delete it.',
+      );
+    }
+
+    revalidatePath('/vandy-dashboard');
+    return { success: true };
+  } catch (err: unknown) {
+    const errorMessage =
+      err instanceof Error ? err.message : 'Failed to delete item';
+
+    console.error('Error deleting item:', errorMessage);
+    return { success: false, error: errorMessage };
+  }
+}
