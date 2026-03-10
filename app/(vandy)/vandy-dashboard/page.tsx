@@ -31,7 +31,7 @@ const VandyDashboard = async () => {
         </h1>
         <Link
           href="/vandy-dashboard/add-item"
-          className="text-green-600 hover:underline font-medium"
+          className="text-green-600 hover:underline font-medium cursor-pointer"
         >
           + Add New
         </Link>
@@ -39,7 +39,6 @@ const VandyDashboard = async () => {
 
       <ul className="w-full mx-auto max-w-3xl flex flex-col gap-y-3">
         {items.map((item: IItem, index: number) => {
-          const deleteAction = deleteItem.bind(null, item._id as string);
           return (
             <li
               key={item._id}
@@ -72,7 +71,7 @@ const VandyDashboard = async () => {
               <div className="flex items-center gap-x-4 justify-self-end">
                 <Link
                   href={`/vandy-dashboard/edit-item/${item._id}`}
-                  className="text-blue-500"
+                  className="text-blue-500 cursor-pointer"
                 >
                   <FaEdit size={18} />
                 </Link>
@@ -85,7 +84,7 @@ const VandyDashboard = async () => {
                 >
                   <button
                     type="submit"
-                    className="text-red-400 hover:text-red-600 transition-colors"
+                    className="text-red-400 hover:text-red-600 transition-colors cursor-pointer"
                   >
                     <FaTrash size={18} />
                   </button>
