@@ -13,7 +13,7 @@ const BecomeVandyPage = async () => {
 
   if (store?.applicationStatus === 'pending') {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4">
+      <div className="min-h-screen flex items-center justify-center">
         <h1 className="text-2xl font-medium">
           Your request is currently pending review...
         </h1>
@@ -29,7 +29,7 @@ const BecomeVandyPage = async () => {
     <section className="flex flex-col items-center justify-center min-h-screen gap-y-8 max-w-xl mx-auto px-4 py-10">
       {/* Conditional Rejection Message */}
       {store?.applicationStatus === 'rejected' && (
-        <div className="w-full bg-red-50 border border-red-200 text-red-800 p-4 rounded-md text-center">
+        <div className="w-full bg-red-50 border border-red-200 text-red-800 rounded-md text-center">
           <p className="font-bold">Application Rejected</p>
           <p className="text-sm">
             Please update your information with correct details. Attempts left:

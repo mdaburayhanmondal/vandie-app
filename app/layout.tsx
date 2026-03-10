@@ -11,10 +11,10 @@ export default function RootLayout({
     <html lang="en">
       <ClerkProvider>
         <body>
-          <header className="max-w-7xl mx-auto">
+          <header className="max-w-7xl mx-auto p-4">
             <Navbar />
           </header>
-          <main className="min-h-screen max-w-7xl mx-auto">{children}</main>
+          <main className="min-h-screen max-w-7xl mx-auto p-4">{children}</main>
           <footer className="max-w-7xl mx-auto">Footer</footer>
         </body>
       </ClerkProvider>

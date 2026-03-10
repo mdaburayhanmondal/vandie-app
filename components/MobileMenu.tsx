@@ -29,7 +29,7 @@ const MobileMenu = ({ dbUser }: { dbUser: IUser | null }) => {
       {dbUser?.role === 'foodie' ?
         <ul
           onClick={() => setMenuOpen(false)}
-          className={`md:hidden ${menuOpen ? 'flex' : 'hidden'} flex-col items-center justify-center gap-y-4 absolute top-20 left-1/2 -translate-x-1/2 w-56 p-4 bg-amber-200/30 backdrop-blur-3xl rounded-lg shadow-lg border border-amber-200 z-50`}
+          className={`md:hidden ${menuOpen ? 'flex' : 'hidden'} flex-col items-center justify-center gap-y-4 absolute top-20 left-1/2 -translate-x-1/2 w-56 bg-amber-200/30 backdrop-blur-3xl rounded-lg shadow-lg border border-amber-200 z-50`}
         >
           <li>
             <ActiveLink
@@ -71,7 +71,7 @@ const MobileMenu = ({ dbUser }: { dbUser: IUser | null }) => {
       : dbUser?.role === 'vandy' ?
         <ul
           onClick={() => setMenuOpen(false)}
-          className={`md:hidden ${menuOpen ? 'flex' : 'hidden'} flex-col items-center justify-center gap-y-4 absolute top-20 left-1/2 -translate-x-1/2 w-56 p-4 bg-amber-200/30 backdrop-blur-3xl rounded-lg shadow-lg border border-amber-200 z-50`}
+          className={`md:hidden ${menuOpen ? 'flex' : 'hidden'} flex-col items-center justify-center gap-y-4 absolute top-20 left-1/2 -translate-x-1/2 w-56 bg-amber-200/30 backdrop-blur-3xl rounded-lg shadow-lg border border-amber-200 z-50`}
         >
           <li>
             <ActiveLink
@@ -113,7 +113,7 @@ const MobileMenu = ({ dbUser }: { dbUser: IUser | null }) => {
       : dbUser?.role === 'admin' ?
         <ul
           onClick={() => setMenuOpen(false)}
-          className={`md:hidden ${menuOpen ? 'flex' : 'hidden'} flex-col items-center justify-center gap-y-4 absolute top-20 left-1/2 -translate-x-1/2 w-56 p-4 bg-amber-200/30 backdrop-blur-3xl rounded-lg shadow-lg border border-amber-200 z-50`}
+          className={`md:hidden ${menuOpen ? 'flex' : 'hidden'} flex-col items-center justify-center gap-y-4 absolute top-20 left-1/2 -translate-x-1/2 w-56 bg-amber-200/30 backdrop-blur-3xl rounded-lg shadow-lg border border-amber-200 z-50`}
         >
           <li>
             <ActiveLink
@@ -153,7 +153,7 @@ const MobileMenu = ({ dbUser }: { dbUser: IUser | null }) => {
           </li>
         </ul>
       : <h1
-          className={`md:hidden ${menuOpen ? 'block' : 'hidden'} absolute top-20 left-1/2 -translate-x-1/2 w-56 p-4 bg-amber-200/30 backdrop-blur-3xl rounded-lg shadow-lg border border-amber-200 z-50`}
+          className={`md:hidden ${menuOpen ? 'block' : 'hidden'} absolute top-20 left-1/2 -translate-x-1/2 w-56 bg-amber-200/30 backdrop-blur-3xl rounded-lg shadow-lg border border-amber-200 z-50`}
         >
           Please Sign In / Sign Up
         </h1>
