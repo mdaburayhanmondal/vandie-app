@@ -1,14 +1,9 @@
 'use client';
 
-import React from 'react';
 import Link from 'next/link';
 import { FaUtensils, FaChevronRight } from 'react-icons/fa';
 import { useCart } from '@/contexts/cartContext';
 
-/**
- * FloatingCart is a global indicator that appears when items are added to the plate.
- * It provides a quick summary and a link to the final checkout.
- */
 const FloatingCart = () => {
   const { totalItems, totalPrice, currentVandyId, cart } = useCart();
 
