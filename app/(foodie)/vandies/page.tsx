@@ -30,11 +30,14 @@ const VandiesPage = async () => {
                     <div className="bg-orange-100 p-3 rounded-2xl text-orange-600 group-hover:bg-orange-600 group-hover:text-white transition-colors">
                       <FaStore size={24} />
                     </div>
-                    {vandie.isLive && (
+                    {vandie.isLive ?
                       <span className="bg-green-100 text-green-700 text-[10px] font-black px-2 py-1 rounded-full uppercase tracking-wider">
                         Live Now
                       </span>
-                    )}
+                    : <span className="bg-red-100 text-red-700 text-[10px] font-black px-2 py-1 rounded-full uppercase tracking-wider">
+                        Ofline
+                      </span>
+                    }
                   </div>
 
                   <h2 className="text-2xl font-black text-gray-900 mb-2 group-hover:text-orange-600 transition-colors">
