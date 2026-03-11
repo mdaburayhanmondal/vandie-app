@@ -146,7 +146,7 @@ export async function deleteItem(itemId: string) {
   }
 }
 
-export async function getAllAvailableItems() {
+export async function getAvailableItems() {
   try {
     await connectToDatabase();
 
