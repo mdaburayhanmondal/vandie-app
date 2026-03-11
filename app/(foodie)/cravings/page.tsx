@@ -75,7 +75,7 @@ const CravingsPage = async ({
                     </span>
                     {item.isVandyLive ?
                       <span className="text-[10px] bg-green-100 text-green-600 px-1 rounded ml-1">
-                        Live
+                        Live Now
                       </span>
                     : <span className="text-[10px] bg-red-100 text-red-600 px-1 rounded ml-1">
                         OFFLINE
