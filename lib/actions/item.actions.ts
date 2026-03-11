@@ -191,3 +191,18 @@ export async function getAvailableItems(search: string, category: string) {
     return [];
   }
 }
+
+export async function getItemDetails(itemId: string) {
+  try {
+    await connectToDatabase();
+    const item = await Item.findOne({ _id: itemId }).lean();
+    if (!item) {
+      return null;
+    }
+    const ownerInfo = await Store.findOne({ ownerId: item.ownerId }).lean();
+    return JSON.parse(JSON.stringify({ item, ownerInfo }));
+  } catch (err) {
+    console.error('Fetch Item Error:', err);
+    return null;
+  }
+}
