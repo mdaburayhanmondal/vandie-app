@@ -1,5 +1,6 @@
 import { getVandyDetails } from '@/lib/actions/store.actions';
 import { IItem } from '@/lib/models/item.model';
+import Link from 'next/link';
 import React from 'react';
 
 const VandyDetailsPage = async ({
@@ -41,7 +42,8 @@ const VandyDetailsPage = async ({
         <p className="text-gray-500">No items available yet.</p>
       : <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {items.map((item: IItem) => (
-            <div
+            <Link
+              href={`/cravings/${item._id}`}
               key={item._id}
               className="border p-4 rounded-xl shadow-sm hover:shadow-md transition-shadow bg-white"
             >
@@ -58,7 +60,7 @@ const VandyDetailsPage = async ({
                   Add to Cart
                 </button>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       }
