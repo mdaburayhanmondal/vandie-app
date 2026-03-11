@@ -32,7 +32,7 @@ const CategoryFilters = () => {
           <button
             key={cat}
             onClick={() => handleCategoryClick(cat)}
-            className={`px-6 py-2 rounded-full font-bold text-sm whitespace-nowrap shadow-sm transition-all border ${
+            className={`cursor-pointer px-6 py-2 rounded-full font-bold text-sm whitespace-nowrap shadow-sm transition-all border ${
               isActive ?
                 'bg-black text-white border-black'
               : 'bg-white text-gray-600 border-gray-100 hover:bg-orange-50 hover:border-orange-200'
