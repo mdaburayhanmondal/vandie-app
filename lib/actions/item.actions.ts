@@ -146,11 +146,25 @@ export async function deleteItem(itemId: string) {
   }
 }
 
-export async function getAvailableItems() {
+export async function getAvailableItems(search: string, category: string) {
   try {
     await connectToDatabase();
+    let queries = { isAvailable: true };
+    if (search) {
+      queries = {
+        ...queries,
+        $or: [
+          { name: { $regex: search, $options: 'i' } },
+          { description: { $regex: search, $options: 'i' } },
+        ],
+      };
+    }
 
-    const availableItems = await Item.find({ isAvailable: true })
+    if (category && category !== 'All') {
+      queries = { ...queries, category: category };
+    }
+
+    const availableItems = await Item.find(queries)
       .sort({ createdAt: -1 })
       .lean();
     if (!availableItems || availableItems.length === 0) {
