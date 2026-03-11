@@ -1,3 +1,4 @@
+import AddToCartButton from '@/components/AddToCartBtn';
 import CategoryFilters from '@/components/CategoryFilters';
 import SearchInput from '@/components/SearchInput';
 import { getAvailableItems } from '@/lib/actions/item.actions';
@@ -103,22 +104,24 @@ const CravingsPage = async ({
                     </div>
 
                     <div className="flex justify-between items-center pt-4 border-t border-gray-50 mt-auto">
-                      <span className="text-2xl font-black text-gray-900">
-                        <small className="text-sm font-bold mr-1 italic">
-                          ৳
-                        </small>
-                        {item.price}
-                      </span>
-                      <button
-                        disabled={!item.isVandyLive}
-                        className={`px-4 py-2 rounded-2xl text-xs font-black uppercase transition-all shadow-md ${
-                          item.isVandyLive ?
-                            'bg-black text-white hover:bg-orange-600 active:scale-95'
-                          : 'bg-gray-100 text-gray-400 cursor-not-allowed shadow-none'
-                        }`}
-                      >
-                        {item.isVandyLive ? 'Add to Plate' : 'Closed'}
-                      </button>
+                      <div className="flex flex-col">
+                        <span className="text-[10px] text-gray-400 font-bold uppercase tracking-tighter">
+                          Price
+                        </span>
+                        <span className="text-2xl font-black text-gray-900">
+                          {item.price}৳
+                        </span>
+                      </div>
+
+                      {item.isVandyLive ?
+                        <AddToCartButton item={item} />
+                      : <button
+                          disabled
+                          className="bg-gray-100 text-gray-400 px-5 py-2 rounded-2xl text-xs font-black uppercase cursor-not-allowed"
+                        >
+                          Closed
+                        </button>
+                      }
                     </div>
                   </div>
                 </div>
