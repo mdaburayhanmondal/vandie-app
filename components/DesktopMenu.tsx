@@ -18,7 +18,7 @@ const DesktopMenu = ({ dbUser }: { dbUser: IUser | null }) => {
           </li>
           <li>
             <ActiveLink
-              href="/vandies"
+              href="/cravings"
               className="p-2"
               activeClassName="text-blue-600 font-semibold"
             >
@@ -71,6 +71,15 @@ const DesktopMenu = ({ dbUser }: { dbUser: IUser | null }) => {
               activeClassName="text-blue-600 font-semibold"
             >
               Orders
+            </ActiveLink>
+          </li>
+          <li>
+            <ActiveLink
+              href="/cravings"
+              className="p-2"
+              activeClassName="text-blue-600 font-semibold"
+            >
+              Cravings
             </ActiveLink>
           </li>
           <li>
