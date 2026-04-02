@@ -1,10 +1,28 @@
 import MyItems from '../../../components/MyItems';
+import { auth } from '@clerk/nextjs/server';
+import { getVandyDetails } from '@/lib/actions/store.actions';
 
 const VandyDashboard = async () => {
+  const { userId } = await auth();
+  const data = await getVandyDetails(userId as string);
+
+  if (!data || !data.vandy) {
+    return (
+      <section className="p-10 text-center">
+        <h1 className="text-xl font-bold">Store not found.</h1>
+      </section>
+    );
+  }
+
+  const { vandy, items } = data;
+
   return (
-    <section>
-      <h1 className="text-3xl text-center">Vandy Dashboard</h1>
-      <MyItems />
+    <section className="py-10">
+      <h1 className="text-3xl text-center font-black italic uppercase tracking-tighter mb-8">
+        {vandy.storeName}'s Dashboard
+      </h1>
+
+      <MyItems items={items} />
     </section>
   );
 };
