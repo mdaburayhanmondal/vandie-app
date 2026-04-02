@@ -14,10 +14,10 @@ const Navbar = async () => {
         Vandie
       </Link>
 
-      {/* desktop menus */}
+      {/* desktop menu */}
       <DesktopMenu dbUser={dbUser} />
 
-      {/* mobile menus */}
+      {/* mobile menu */}
       <MobileMenu dbUser={dbUser} />
 
       <div className="flex gap-x-2">

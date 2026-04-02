@@ -22,6 +22,15 @@ const DesktopMenu = ({ dbUser }: { dbUser: IUser | null }) => {
               className="p-2"
               activeClassName="text-blue-600 font-semibold"
             >
+              Cravings
+            </ActiveLink>
+          </li>
+          <li>
+            <ActiveLink
+              href="/vandies"
+              className="p-2"
+              activeClassName="text-blue-600 font-semibold"
+            >
               All Vandies
             </ActiveLink>
           </li>
