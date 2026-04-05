@@ -7,6 +7,7 @@ export interface IItem {
   price: number;
   category: string;
   description?: string;
+  prePayAmount: string;
   isAvailable: boolean;
   image?: string;
   createdAt: Date;
@@ -39,6 +40,11 @@ const ItemSchema = new Schema(
     description: {
       type: String,
       maxLength: 150,
+    },
+    prePayAmount: {
+      type: String,
+      required: true,
+      default: 'pwp',
     },
     isAvailable: {
       type: Boolean,
