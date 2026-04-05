@@ -3,13 +3,14 @@
 import { CartItem, useCart } from '@/contexts/cartContext';
 import React, { useState } from 'react';
 
-import { FaPlus, FaExclamationTriangle } from 'react-icons/fa';
+import { FaExclamationTriangle } from 'react-icons/fa';
 
 interface AddToCartButtonProps {
   item: {
     _id: string;
     name: string;
     price: number;
+    prePayAmount: number;
     category: string;
     ownerId: string;
     storeName: string;
@@ -26,6 +27,7 @@ const AddToCartButton = ({ item, className }: AddToCartButtonProps) => {
       _id: item._id,
       name: item.name,
       price: item.price,
+      prePayAmount: Number(item.prePayAmount),
       quantity: 1,
       vandyId: item.ownerId,
       vandyName: item.storeName,
@@ -46,6 +48,7 @@ const AddToCartButton = ({ item, className }: AddToCartButtonProps) => {
         _id: item._id,
         name: item.name,
         price: item.price,
+        prePayAmount: Number(item.prePayAmount),
         quantity: 1,
         vandyId: item.ownerId,
         vandyName: item.storeName,

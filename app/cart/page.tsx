@@ -8,7 +8,6 @@ import {
   FaMinus,
   FaArrowLeft,
   FaStore,
-  FaMotorcycle,
   FaReceipt,
 } from 'react-icons/fa';
 
@@ -18,13 +17,13 @@ export default function CartPage() {
     removeFromCart,
     updateQuantity,
     totalPrice,
+    totalPrePay,
     totalItems,
     clearCart,
   } = useCart();
 
   const deliveryFee = cart.length > 0 ? 30 : 0;
-  const platformFee = cart.length > 0 ? 5 : 0;
-  const grandTotal = totalPrice + deliveryFee + platformFee;
+  const grandTotal = totalPrice - totalPrePay;
 
   if (cart.length === 0) {
     return (
@@ -146,19 +145,13 @@ export default function CartPage() {
                 <span className="text-gray-900 font-bold">{totalPrice}৳</span>
               </div>
               <div className="flex justify-between text-sm font-medium text-gray-500">
-                <span className="flex items-center gap-2">
-                  <FaMotorcycle /> Delivery Fee
-                </span>
-                <span className="text-gray-900 font-bold">{deliveryFee}৳</span>
-              </div>
-              <div className="flex justify-between text-sm font-medium text-gray-500">
-                <span>Platform Fee</span>
-                <span className="text-gray-900 font-bold">{platformFee}৳</span>
+                <span>Pre Pay Amount</span>
+                <span className="text-gray-900 font-bold">{totalPrePay}৳</span>
               </div>
 
-              <div className="pt-4 border-t-2 border-dashed border-gray-100 flex justify-between">
+              <div className="pt-4 border-t-2 border-dashed border-gray-100 flex justify-between gap-x-2">
                 <span className="text-lg font-black text-gray-900 uppercase italic">
-                  To Pay
+                  To Pay When Pick
                 </span>
                 <span className="text-2xl font-black text-orange-600">
                   {grandTotal}৳
@@ -167,7 +160,7 @@ export default function CartPage() {
             </div>
 
             <button className="w-full py-5 rounded-2xl bg-black text-white font-black uppercase text-lg shadow-xl hover:bg-orange-600 transition-all active:scale-[0.98] shadow-orange-100">
-              Confirm Order
+              Check Availability
             </button>
 
             <p className="text-[10px] text-gray-400 font-bold text-center mt-4 uppercase tracking-widest">
