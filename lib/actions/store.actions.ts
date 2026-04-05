@@ -1,3 +1,4 @@
+'use server';
 import { auth } from '@clerk/nextjs/server';
 import { connectToDatabase } from '../db';
 import Store from '../models/store.model';
@@ -7,7 +8,6 @@ import { revalidatePath } from 'next/cache';
 import Item from '../models/item.model';
 
 export async function createStore(formData: FormData) {
-  'use server';
   try {
     const { userId } = await auth();
     if (!userId) {
@@ -53,7 +53,6 @@ export async function fetchVandyApplications() {
 }
 
 export async function approveApplication(storeId: string) {
-  'use server';
   try {
     await connectToDatabase();
     const updatedStore = await Store.findByIdAndUpdate(
@@ -73,7 +72,6 @@ export async function approveApplication(storeId: string) {
 }
 
 export async function rejectApplication(storeId: string) {
-  'use server';
   await connectToDatabase();
 
   const updatedStore = await Store.findByIdAndUpdate(
@@ -114,5 +112,32 @@ export async function getVandyDetails(vandyId: string) {
   } catch (err) {
     console.error('Database Error:', err);
     return null;
+  }
+}
+
+export async function toggleLiveStatus(
+  storeId: string,
+  currentStatus: boolean,
+) {
+  try {
+    const { userId } = await auth();
+    if (!userId) throw new Error('Unauthorized');
+
+    await connectToDatabase();
+
+    const updatedStore = await Store.findOneAndUpdate(
+      { _id: storeId, ownerId: userId },
+      { isLive: !currentStatus },
+      { new: true },
+    );
+
+    if (!updatedStore) throw new Error('Store not found or unauthorized');
+
+    revalidatePath('/vandy-dashboard');
+
+    return { success: true, isLive: updatedStore.isLive };
+  } catch (err) {
+    console.error(err);
+    return { success: false };
   }
 }

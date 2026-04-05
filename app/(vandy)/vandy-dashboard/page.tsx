@@ -1,6 +1,7 @@
 import MyItems from '../../../components/MyItems';
 import { auth } from '@clerk/nextjs/server';
 import { getVandyDetails } from '@/lib/actions/store.actions';
+import LiveStatusToggle from '@/components/LiveStatusToggle';
 
 const VandyDashboard = async () => {
   const { userId } = await auth();
@@ -17,11 +18,14 @@ const VandyDashboard = async () => {
   const { vandy, items } = data;
 
   return (
-    <section className="py-10">
-      <h1 className="text-3xl text-center font-black italic uppercase tracking-tighter mb-8">
+    <section className="py-10 text-center flex flex-col items-center">
+      <h1 className="text-3xl font-black italic uppercase tracking-tighter mb-8">
         {vandy.storeName}'s Dashboard
       </h1>
-
+      <LiveStatusToggle
+        status={data.vandy.isLive}
+        storeId={data.vandy._id.toString()}
+      />
       <MyItems items={items} />
     </section>
   );
