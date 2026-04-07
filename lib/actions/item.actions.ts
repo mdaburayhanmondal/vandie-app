@@ -23,20 +23,21 @@ export async function addItem(formData: FormData) {
     const price = Number(formData.get('price'));
     const category = formData.get('category') as string;
     const description = formData.get('description') as string;
+    const prePayAmount = formData.get('prePayAmount') as string;
     const imageUrl = formData.get('image') as string;
-
     const isAvailable = !!formData.get('isAvailable');
 
-    if (!name || isNaN(price) || !category) {
+    if (!name || isNaN(price) || !category || !prePayAmount) {
       throw new Error('Please provide a valid name, price, and category.');
     }
 
-    await Item.create({
+    const newItem = await Item.create({
       ownerId: userId,
       name,
       price,
       category,
       description,
+      prePayAmount,
       isAvailable,
       image: imageUrl,
     });
