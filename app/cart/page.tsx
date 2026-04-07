@@ -1,5 +1,6 @@
 'use client';
 
+import React, { useState } from 'react'; // Added useState
 import { CartItem, useCart } from '@/contexts/cartContext';
 import Link from 'next/link';
 import {
@@ -9,6 +10,8 @@ import {
   FaArrowLeft,
   FaStore,
   FaReceipt,
+  FaClock, // Added icon
+  FaCalendarAlt, // Added icon
 } from 'react-icons/fa';
 
 export default function CartPage() {
@@ -21,6 +24,10 @@ export default function CartPage() {
     totalItems,
     clearCart,
   } = useCart();
+
+  // Step 1: State for Pickup Details
+  const [pickupDate, setPickupDate] = useState('');
+  const [pickupTime, setPickupTime] = useState('');
 
   const deliveryFee = cart.length > 0 ? 30 : 0;
   const grandTotal = totalPrice - totalPrePay;
@@ -50,8 +57,19 @@ export default function CartPage() {
 
   const vandyName = cart[0].vandyName;
 
+  // Handler for the next step (logic will be added in Step 2)
+  const handleCheckAvailability = () => {
+    if (!pickupDate || !pickupTime) {
+      alert('Please select both a date and time for pickup!');
+      return;
+    }
+    console.log('Requesting availability for:', { pickupDate, pickupTime });
+    // This is where we will call the Server Action to create the Order record
+  };
+
   return (
     <section className="max-w-4xl mx-auto px-6 py-10 min-h-screen">
+      {/* ... Header and Item List remain the same ... */}
       <div className="flex items-center justify-between mb-8">
         <Link
           href="/cravings"
@@ -68,8 +86,8 @@ export default function CartPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
-        {/* 1. Item List */}
         <div className="lg:col-span-2">
+          {/* ... Item List Content ... */}
           <div className="flex items-center gap-3 mb-6">
             <div className="p-2 bg-orange-100 text-orange-600 rounded-lg">
               <FaStore size={18} />
@@ -139,6 +157,43 @@ export default function CartPage() {
               Bill Summary
             </h2>
 
+            {/* Step 1 UI: Pickup Time Section */}
+            <div className="mb-8 space-y-4">
+              <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                Pickup Schedule
+              </p>
+
+              <div className="flex flex-col gap-3">
+                <div className="relative">
+                  <FaCalendarAlt
+                    className="absolute left-3 top-1/2 -translate-y-1/2 text-orange-600"
+                    size={14}
+                  />
+                  <input
+                    type="date"
+                    required
+                    value={pickupDate}
+                    onChange={(e) => setPickupDate(e.target.value)}
+                    className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm font-bold focus:outline-none focus:ring-2 focus:ring-orange-200 transition-all"
+                  />
+                </div>
+
+                <div className="relative">
+                  <FaClock
+                    className="absolute left-3 top-1/2 -translate-y-1/2 text-orange-600"
+                    size={14}
+                  />
+                  <input
+                    type="time"
+                    required
+                    value={pickupTime}
+                    onChange={(e) => setPickupTime(e.target.value)}
+                    className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm font-bold focus:outline-none focus:ring-2 focus:ring-orange-200 transition-all"
+                  />
+                </div>
+              </div>
+            </div>
+
             <div className="space-y-4 mb-8">
               <div className="flex justify-between text-sm font-medium text-gray-500">
                 <span>Subtotal ({totalItems} items)</span>
@@ -149,22 +204,36 @@ export default function CartPage() {
                 <span className="text-gray-900 font-bold">{totalPrePay}৳</span>
               </div>
 
-              <div className="pt-4 border-t-2 border-dashed border-gray-100 flex justify-between gap-x-2">
-                <span className="text-lg font-black text-gray-900 uppercase italic">
-                  To Pay When Pick
-                </span>
-                <span className="text-2xl font-black text-orange-600">
-                  {grandTotal}৳
-                </span>
-              </div>
+              {totalPrePay > 0 ?
+                <div className="pt-4 border-t-2 border-dashed border-gray-100 flex justify-between gap-x-2">
+                  <span className="text-lg font-black text-gray-900 uppercase italic">
+                    To Pay When Pick
+                  </span>
+                  <span className="text-2xl font-black text-orange-600">
+                    {grandTotal}৳
+                  </span>
+                </div>
+              : <div className="pt-4 border-t-2 border-dashed border-gray-100 flex justify-between gap-x-2">
+                  <span className="text-lg font-black text-gray-900 uppercase italic">
+                    Pay When Pick
+                  </span>
+                  {/* Since grandTotal is totalPrice - totalPrePay, and totalPrePay is 0, it works fine */}
+                  <span className="text-2xl font-black text-orange-600">
+                    {grandTotal}৳
+                  </span>
+                </div>
+              }
             </div>
 
-            <button className="w-full py-5 rounded-2xl bg-black text-white font-black uppercase text-lg shadow-xl hover:bg-orange-600 transition-all active:scale-[0.98] shadow-orange-100">
+            <button
+              onClick={handleCheckAvailability}
+              className="w-full py-5 rounded-2xl bg-black text-white font-black uppercase text-lg shadow-xl hover:bg-orange-600 transition-all active:scale-[0.98] shadow-orange-100 cursor-pointer"
+            >
               Check Availability
             </button>
 
             <p className="text-[10px] text-gray-400 font-bold text-center mt-4 uppercase tracking-widest">
-              Pay via bKash or Cash on Delivery
+              Pre Pay via bKash
             </p>
           </div>
         </div>
