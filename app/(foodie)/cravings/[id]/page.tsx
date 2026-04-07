@@ -80,19 +80,19 @@ const ItemDetailsPage = async ({
                 }
               </div>
 
-              {ownerInfo.isLive ?
+              {!ownerInfo.isLive ?
                 <button
-                  disabled={!item.isAvailable}
-                  className="w-full py-5 rounded-2xl bg-black text-white font-black text-lg uppercase shadow-xl hover:bg-orange-600 transition-all active:scale-[0.98] disabled:bg-gray-200 disabled:text-gray-400 disabled:shadow-none"
-                >
-                  Not Available
-                </button>
-              : !ownerInfo.isLive ?
-                <button
-                  disabled={!item.isAvailable}
+                  disabled
                   className="w-full py-5 rounded-2xl bg-black text-white font-black text-lg uppercase shadow-xl hover:bg-red-600 transition-all active:scale-[0.98] disabled:bg-gray-200 disabled:text-gray-400 disabled:shadow-none"
                 >
                   Offline
+                </button>
+              : !item.isAvailable ?
+                <button
+                  disabled
+                  className="w-full py-5 rounded-2xl bg-black text-white font-black text-lg uppercase shadow-xl hover:bg-orange-600 transition-all active:scale-[0.98] disabled:bg-gray-200 disabled:text-gray-400 disabled:shadow-none"
+                >
+                  Sold Out
                 </button>
               : <AddToCartButton item={item} />}
             </div>
