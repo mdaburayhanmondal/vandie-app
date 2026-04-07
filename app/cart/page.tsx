@@ -6,7 +6,9 @@ import {
   createOrderRequest,
   getActiveOrder,
   cancelOrder,
+  submitOrderPayment,
 } from '@/lib/actions/order.actions';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
   FaTrash,
@@ -21,6 +23,7 @@ import {
   FaHourglassHalf,
   FaCheckCircle,
   FaExclamationCircle,
+  FaWallet,
 } from 'react-icons/fa';
 
 export default function CartPage() {
@@ -34,18 +37,18 @@ export default function CartPage() {
     clearCart,
   } = useCart();
 
-  // Step 1 & 2 State
+  const router = useRouter();
   const [pickupDate, setPickupDate] = useState('');
   const [pickupTime, setPickupTime] = useState('');
+  const [trxId, setTrxId] = useState('');
   const [loading, setLoading] = useState(false);
   const [activeOrder, setActiveOrder] = useState<any>(null);
   const [initialCheckDone, setInitialCheckDone] = useState(false);
 
-  const platformFee = 0;
+  const platformFee = cart.length > 0 ? 5 : 0;
   const grandTotal = totalPrice + platformFee;
   const dueAtPickup = grandTotal - totalPrePay;
 
-  // Check for existing active orders
   useEffect(() => {
     async function init() {
       const order = await getActiveOrder();
@@ -55,53 +58,57 @@ export default function CartPage() {
     init();
   }, []);
 
-  // Polling for status updates if we have a requested order
+  useEffect(() => {
+    if (
+      activeOrder &&
+      ['preparing', 'ready', 'completed'].includes(activeOrder.status)
+    ) {
+      router.push(`/orders/${activeOrder._id}`);
+    }
+  }, [activeOrder, router]);
+
   useEffect(() => {
     let interval: NodeJS.Timeout;
-    if (activeOrder && activeOrder.status === 'requested') {
+    if (
+      activeOrder &&
+      ['requested', 'approved', 'paid'].includes(activeOrder.status)
+    ) {
       interval = setInterval(async () => {
         const order = await getActiveOrder();
-        if (order && order.status !== 'requested') {
+        if (order) {
           setActiveOrder(order);
-          // If approved, we might want to play a sound or alert
-        } else if (!order) {
-          // If order is null, Vandy might have rejected/deleted it
+        } else {
           setActiveOrder(null);
         }
-      }, 5000);
+      }, 4000);
     }
     return () => clearInterval(interval);
   }, [activeOrder]);
 
   const handleCheckAvailability = async () => {
-    if (!pickupDate || !pickupTime) {
-      alert('Please select both a date and time for pickup!');
-      return;
-    }
-
+    if (!pickupDate || !pickupTime) return alert('Select date and time!');
     setLoading(true);
 
-    const orderData = {
+    const formattedItems = cart.map((item: CartItem) => ({
+      itemId: item._id,
+      name: item.name,
+      price: item.price,
+      quantity: item.quantity,
+    }));
+
+    const result = await createOrderRequest({
       vandyId: cart[0].vandyId,
       vandyName: cart[0].vandyName,
-      items: cart.map((item) => ({
-        itemId: item._id,
-        name: item.name,
-        price: item.price,
-        quantity: item.quantity,
-      })),
+      items: formattedItems, // Send the mapped items
       pickupDate,
       pickupTime,
       totalPrice,
       totalPrePay,
       grandTotal,
       dueAtPickup,
-    };
-
-    const result = await createOrderRequest(orderData);
+    });
 
     if (result.success) {
-      // Fetch the order back to set active state
       const order = await getActiveOrder();
       setActiveOrder(order);
     } else {
@@ -110,24 +117,35 @@ export default function CartPage() {
     setLoading(false);
   };
 
-  const handleCancelRequest = async () => {
-    if (!activeOrder) return;
-    if (!confirm('Are you sure you want to cancel this request?')) return;
-
+  const handlePaymentSubmit = async () => {
+    if (trxId.length < 8) return alert('Invalid TrxID');
     setLoading(true);
-    const result = await cancelOrder(activeOrder._id);
+    const result = await submitOrderPayment(activeOrder._id, trxId);
     if (result.success) {
-      setActiveOrder(null);
-    } else {
-      alert('Failed to cancel order.');
+      clearCart();
+      const updated = await getActiveOrder();
+      setActiveOrder(updated);
     }
     setLoading(false);
   };
 
-  if (!initialCheckDone) {
+  if (!initialCheckDone)
     return (
       <div className="min-h-screen flex items-center justify-center">
         <FaSpinner className="animate-spin text-orange-600" size={30} />
+      </div>
+    );
+
+  if (
+    activeOrder &&
+    ['preparing', 'ready', 'completed'].includes(activeOrder.status)
+  ) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center gap-4">
+        <FaSpinner className="animate-spin text-orange-600" size={40} />
+        <p className="font-black italic uppercase tracking-tighter">
+          Moving to kitchen...
+        </p>
       </div>
     );
   }
@@ -135,15 +153,12 @@ export default function CartPage() {
   if (cart.length === 0 && !activeOrder) {
     return (
       <section className="min-h-[70vh] flex flex-col items-center justify-center p-6 text-center">
-        <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-6">
-          <FaReceipt size={40} className="text-gray-300" />
-        </div>
-        <h1 className="text-3xl font-black italic text-gray-900 uppercase tracking-tighter mb-2">
+        <h1 className="text-3xl font-black italic uppercase tracking-tighter mb-4">
           Your plate is empty
         </h1>
         <Link
           href="/cravings"
-          className="bg-black text-white px-8 py-4 rounded-2xl font-black uppercase text-sm mt-4"
+          className="bg-black text-white px-8 py-4 rounded-2xl font-black uppercase text-sm"
         >
           Explore Marketplace
         </Link>
@@ -151,16 +166,14 @@ export default function CartPage() {
     );
   }
 
-  const vandyName = activeOrder?.vandyName || cart[0]?.vandyName;
-
   return (
     <section className="max-w-4xl mx-auto px-6 py-10 min-h-screen">
       <div className="flex items-center justify-between mb-8">
         <Link
           href="/cravings"
-          className="flex items-center gap-2 text-sm font-bold text-gray-400 hover:text-orange-600 uppercase transition-colors"
+          className="text-sm font-bold text-gray-400 hover:text-orange-600 transition-colors uppercase tracking-widest flex items-center gap-2"
         >
-          <FaArrowLeft /> Keep Browsing
+          <FaArrowLeft /> Back to Cravings
         </Link>
         {!activeOrder && (
           <button
@@ -183,7 +196,7 @@ export default function CartPage() {
                 Ordering from
               </p>
               <h2 className="text-2xl font-black italic text-gray-900 uppercase tracking-tighter">
-                {vandyName}
+                {activeOrder?.vandyName || cart[0]?.vandyName}
               </h2>
             </div>
           </div>
@@ -195,9 +208,6 @@ export default function CartPage() {
                   key={item._id}
                   className="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm flex items-center gap-4"
                 >
-                  <div className="w-16 h-16 bg-orange-50 rounded-2xl flex items-center justify-center font-black text-orange-200 text-xs uppercase italic text-center p-2">
-                    {item.category}
-                  </div>
                   <div className="flex-1">
                     <h3 className="font-black text-gray-900 leading-tight">
                       {item.name}
@@ -206,7 +216,7 @@ export default function CartPage() {
                       {item.price}৳
                     </p>
                   </div>
-                  <div className="flex items-center bg-gray-50 rounded-2xl p-1 gap-2">
+                  <div className="flex items-center bg-gray-50 rounded-2xl p-1 gap-2 border">
                     <button
                       onClick={() => updateQuantity(item._id, -1)}
                       className="p-2"
@@ -225,7 +235,7 @@ export default function CartPage() {
                   </div>
                   <button
                     onClick={() => removeFromCart(item._id)}
-                    className="p-2 text-gray-300 hover:text-red-500 transition-colors"
+                    className="p-2 text-gray-300 hover:text-red-500"
                   >
                     <FaTrash size={12} />
                   </button>
@@ -235,23 +245,24 @@ export default function CartPage() {
           : <div className="bg-white rounded-[2.5rem] border border-gray-100 p-10 text-center shadow-sm">
               {activeOrder.status === 'requested' && (
                 <div className="space-y-6">
-                  <div className="w-20 h-20 bg-orange-100 text-orange-600 rounded-full mx-auto flex items-center justify-center animate-pulse">
-                    <FaHourglassHalf size={40} />
-                  </div>
-                  <div>
-                    <h3 className="text-2xl font-black italic uppercase text-gray-900">
-                      Waiting for Vandy
-                    </h3>
-                    <p className="text-gray-500 text-sm mt-2 italic leading-relaxed">
-                      We've notified {vandyName}. They are checking if they can
-                      fulfill your pre-order for {activeOrder.pickupDate} at{' '}
-                      {activeOrder.pickupTime}.
-                    </p>
-                  </div>
+                  <FaHourglassHalf
+                    size={40}
+                    className="text-orange-600 mx-auto animate-pulse"
+                  />
+                  <h3 className="text-2xl font-black italic uppercase text-gray-900">
+                    Waiting for Vandy
+                  </h3>
+                  <p className="text-gray-500 text-sm italic">
+                    Request sent for {activeOrder.pickupDate} at{' '}
+                    {activeOrder.pickupTime}.
+                  </p>
                   <button
-                    onClick={handleCancelRequest}
-                    disabled={loading}
-                    className="text-red-400 font-bold uppercase text-[10px] tracking-widest hover:text-red-600 underline disabled:opacity-50"
+                    onClick={() =>
+                      cancelOrder(activeOrder._id).then(() =>
+                        setActiveOrder(null),
+                      )
+                    }
+                    className="text-red-400 font-bold uppercase text-[10px] underline"
                   >
                     Cancel Request
                   </button>
@@ -260,34 +271,53 @@ export default function CartPage() {
 
               {activeOrder.status === 'approved' && (
                 <div className="space-y-6">
-                  <div className="w-20 h-20 bg-green-100 text-green-600 rounded-full mx-auto flex items-center justify-center shadow-lg shadow-green-100">
-                    <FaCheckCircle size={40} />
-                  </div>
-                  <div>
-                    <h3 className="text-2xl font-black italic uppercase text-gray-900">
-                      Request Approved!
-                    </h3>
-                    <p className="text-gray-500 text-sm mt-2 font-medium">
-                      {vandyName} has accepted your order. Please pay the
-                      pre-payment amount below to confirm your plate.
-                    </p>
-                  </div>
-                  {/* Step 3 (Payment) UI will go here next */}
-                  <div className="p-6 bg-orange-50 border border-orange-100 rounded-3xl">
-                    <p className="text-[10px] font-black text-orange-400 uppercase tracking-widest mb-1">
-                      Pre-Payment Required
-                    </p>
-                    <p className="text-4xl font-black text-gray-900">
+                  <FaCheckCircle size={40} className="text-green-500 mx-auto" />
+                  <h3 className="text-2xl font-black italic uppercase text-gray-900">
+                    Approved!
+                  </h3>
+                  <div className="p-6 bg-orange-50 border border-orange-100 rounded-3xl space-y-4">
+                    <p className="text-3xl font-black text-gray-900">
                       {activeOrder.totalPrePay}৳
                     </p>
+                    <input
+                      type="text"
+                      placeholder="Enter bKash TrxID"
+                      value={trxId}
+                      onChange={(e) => setTrxId(e.target.value.toUpperCase())}
+                      className="w-full px-4 py-4 bg-white border-2 border-orange-200 rounded-2xl font-black text-center focus:ring-4 focus:ring-orange-100 outline-none uppercase"
+                    />
+                    <button
+                      onClick={handlePaymentSubmit}
+                      disabled={loading}
+                      className="w-full py-4 bg-black text-white rounded-2xl font-black uppercase shadow-xl"
+                    >
+                      {loading ? 'Submitting...' : 'Confirm Payment'}
+                    </button>
                   </div>
+                </div>
+              )}
+
+              {activeOrder.status === 'paid' && (
+                <div className="space-y-6">
+                  <FaWallet
+                    size={40}
+                    className="text-blue-500 mx-auto animate-bounce"
+                  />
+                  <h3 className="text-2xl font-black italic uppercase text-gray-900">
+                    Verifying TrxID
+                  </h3>
+                  <p className="text-gray-500 text-sm">
+                    Vandy is checking TrxID:{' '}
+                    <span className="font-bold">
+                      {activeOrder.paymentDetails?.trxId}
+                    </span>
+                  </p>
                 </div>
               )}
             </div>
           }
         </div>
 
-        {/* 2. Order Summary Sidebar */}
         <div className="lg:col-span-1">
           <div className="bg-white rounded-[2.5rem] border border-gray-100 shadow-xl p-8 sticky top-24">
             <h2 className="text-xl font-black text-gray-900 uppercase italic tracking-tighter mb-6 border-b pb-4">
@@ -295,100 +325,61 @@ export default function CartPage() {
             </h2>
 
             {!activeOrder ?
-              <>
-                <div className="mb-8 space-y-4">
+              <div className="space-y-6">
+                <div className="space-y-3">
                   <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
                     Pickup Schedule
                   </p>
-                  <div className="flex flex-col gap-3">
-                    <div className="relative">
-                      <FaCalendarAlt
-                        className="absolute left-3 top-1/2 -translate-y-1/2 text-orange-600"
-                        size={14}
-                      />
-                      <input
-                        type="date"
-                        value={pickupDate}
-                        onChange={(e) => setPickupDate(e.target.value)}
-                        className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm font-bold outline-none focus:ring-2 focus:ring-orange-200"
-                      />
-                    </div>
-                    <div className="relative">
-                      <FaClock
-                        className="absolute left-3 top-1/2 -translate-y-1/2 text-orange-600"
-                        size={14}
-                      />
-                      <input
-                        type="time"
-                        value={pickupTime}
-                        onChange={(e) => setPickupTime(e.target.value)}
-                        className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm font-bold outline-none focus:ring-2 focus:ring-orange-200"
-                      />
-                    </div>
-                  </div>
+                  <input
+                    type="date"
+                    value={pickupDate}
+                    onChange={(e) => setPickupDate(e.target.value)}
+                    className="w-full p-3 bg-gray-50 border rounded-xl text-xs font-bold"
+                  />
+                  <input
+                    type="time"
+                    value={pickupTime}
+                    onChange={(e) => setPickupTime(e.target.value)}
+                    className="w-full p-3 bg-gray-50 border rounded-xl text-xs font-bold"
+                  />
                 </div>
-
-                <div className="space-y-4 mb-8">
-                  <div className="flex justify-between text-sm font-medium text-gray-500">
-                    <span>Subtotal ({totalItems} items)</span>
-                    <span className="text-gray-900 font-bold">
-                      {totalPrice}৳
-                    </span>
+                <div className="space-y-4 border-t pt-4">
+                  <div className="flex justify-between text-xs font-bold text-gray-500">
+                    <span>Subtotal</span>
+                    <span>{totalPrice}৳</span>
                   </div>
-                  <div className="flex justify-between text-sm font-medium text-gray-500">
-                    <span>Platform Fee</span>
-                    <span className="text-gray-900 font-bold">
-                      {platformFee}৳
-                    </span>
+                  <div className="flex justify-between text-xs font-bold text-gray-500">
+                    <span>Pre-pay</span>
+                    <span className="text-orange-600">{totalPrePay}৳</span>
                   </div>
-                  <div className="flex justify-between text-sm font-medium text-gray-500">
-                    <span>Pre Pay Amount</span>
-                    <span className="text-gray-900 font-bold">
-                      {totalPrePay}৳
+                  <div className="pt-2 border-t-2 border-dashed flex justify-between items-center">
+                    <span className="text-sm font-black uppercase italic">
+                      At Pickup
                     </span>
-                  </div>
-                  <div className="pt-4 border-t-2 border-dashed border-gray-100 flex justify-between gap-x-2">
-                    <span className="text-lg font-black text-gray-900 uppercase italic">
-                      To Pay When Pick
-                    </span>
-                    <span className="text-2xl font-black text-orange-600">
-                      {dueAtPickup}৳
+                    <span className="text-xl font-black text-gray-900">
+                      {dueAtPickup + platformFee}৳
                     </span>
                   </div>
                 </div>
-
                 <button
                   onClick={handleCheckAvailability}
                   disabled={loading}
-                  className="w-full py-5 rounded-2xl bg-black text-white font-black uppercase text-lg shadow-xl hover:bg-orange-600 transition-all flex items-center justify-center gap-2"
+                  className="w-full py-4 bg-black text-white rounded-2xl font-black uppercase shadow-lg hover:bg-orange-600 transition-all"
                 >
-                  {loading ?
-                    <FaSpinner className="animate-spin" />
-                  : 'Check Availability'}
+                  {loading ? 'Checking...' : 'Check Availability'}
                 </button>
-              </>
-            : <div className="space-y-6">
-                <div className="bg-gray-50 p-6 rounded-3xl border border-gray-100">
-                  <div className="flex justify-between items-center mb-2">
-                    <span className="text-xs font-bold text-gray-400 uppercase">
-                      Bill Amount
-                    </span>
-                    <span className="font-black text-gray-900">
-                      {activeOrder.grandTotal}৳
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center text-orange-600">
-                    <span className="text-xs font-bold uppercase">
-                      Pre-pay Now
-                    </span>
-                    <span className="font-black">
-                      {activeOrder.totalPrePay}৳
-                    </span>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest text-center">
-                  <FaExclamationCircle /> Status updates automatically
-                </div>
+              </div>
+            : <div className="text-center py-6">
+                <FaHourglassHalf
+                  className="mx-auto text-gray-200 mb-4"
+                  size={30}
+                />
+                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                  Order in Progress
+                </p>
+                <p className="text-xs font-bold text-gray-900 mt-1">
+                  Review live updates in the left panel
+                </p>
               </div>
             }
           </div>
