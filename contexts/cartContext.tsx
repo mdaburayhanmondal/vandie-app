@@ -12,6 +12,7 @@ export interface CartItem {
   _id: string;
   name: string;
   price: number;
+  prePayAmount: number;
   quantity: number;
   vandyId: string;
   vandyName: string;
@@ -25,6 +26,7 @@ interface CartContextType {
   updateQuantity: (itemId: string, delta: number) => void;
   clearCart: () => void;
   totalPrice: number;
+  totalPrePay: number;
   totalItems: number;
   currentVandyId: string | null;
 }
@@ -62,6 +64,16 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
     () => cart.reduce((acc, item) => acc + item.price * item.quantity, 0),
     [cart],
   );
+
+  const totalPrePay = useMemo(
+    () =>
+      cart.reduce(
+        (acc, item) => acc + (item.prePayAmount || 0) * item.quantity,
+        0,
+      ),
+    [cart],
+  );
+
   const totalItems = useMemo(
     () => cart.reduce((acc, item) => acc + item.quantity, 0),
     [cart],
@@ -114,6 +126,7 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
         updateQuantity,
         clearCart,
         totalPrice,
+        totalPrePay,
         totalItems,
         currentVandyId,
       }}
