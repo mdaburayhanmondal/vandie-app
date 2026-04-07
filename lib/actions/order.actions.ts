@@ -5,8 +5,7 @@ import { connectToDatabase } from '../db';
 import Order from '../models/order.model';
 import { revalidatePath } from 'next/cache';
 
-//  Create the initial Order Request (Customer Side)
-
+//  Create the initial Order Request (foodie)
 export async function createOrderRequest(orderData: any) {
   try {
     const { userId } = await auth();
@@ -42,9 +41,7 @@ export async function createOrderRequest(orderData: any) {
   }
 }
 
-/**
- * Check Order Status (Customer Polling)
- */
+// Check Order Status (foodie)
 export async function getOrderStatus(orderId: string) {
   try {
     await connectToDatabase();
@@ -55,9 +52,7 @@ export async function getOrderStatus(orderId: string) {
   }
 }
 
-/**
- * Get active order for current user
- */
+// Get active order for current user (foodie)
 export async function getActiveOrder() {
   try {
     const { userId } = await auth();
@@ -77,9 +72,7 @@ export async function getActiveOrder() {
   }
 }
 
-/**
- * Cancel Order
- */
+// Cancel Order (foodie)
 export async function cancelOrder(orderId: string) {
   try {
     const { userId } = await auth();
@@ -89,6 +82,68 @@ export async function cancelOrder(orderId: string) {
     await Order.findOneAndDelete({ _id: orderId, foodieId: userId });
 
     revalidatePath('/cart');
+    return { success: true };
+  } catch (error) {
+    return { success: false };
+  }
+}
+
+// Fetch all orders (Vandy)
+export async function getVandyOrders() {
+  try {
+    const { userId } = await auth();
+    if (!userId) throw new Error('Unauthorized');
+
+    await connectToDatabase();
+
+    // Fetch orders where vandyId matches the logged-in user
+    // Sorted by requested orders first, then by date
+    const orders = await Order.find({ vandyId: userId })
+      .sort({ status: -1, createdAt: -1 })
+      .lean();
+
+    return JSON.parse(JSON.stringify(orders));
+  } catch (error) {
+    console.error('Error fetching vandy orders:', error);
+    return [];
+  }
+}
+
+// Update Order Status (vandy)
+export async function updateOrderStatus(orderId: string, newStatus: string) {
+  try {
+    const { userId } = await auth();
+    if (!userId) throw new Error('Unauthorized');
+
+    await connectToDatabase();
+
+    // Security check: ensure the order belongs to this Vandy
+    const order = await Order.findOneAndUpdate(
+      { _id: orderId, vandyId: userId },
+      { status: newStatus },
+      { new: true },
+    );
+
+    if (!order) throw new Error('Order not found or unauthorized');
+
+    revalidatePath('/vandy-dashboard/orders');
+    return { success: true };
+  } catch (error) {
+    console.error('Error updating order:', error);
+    return { success: false };
+  }
+}
+
+// Delete/Reject Request (If Vandy rejects, we remove it from db)
+export async function rejectOrderRequest(orderId: string) {
+  try {
+    const { userId } = await auth();
+    if (!userId) throw new Error('Unauthorized');
+
+    await connectToDatabase();
+    await Order.findOneAndDelete({ _id: orderId, vandyId: userId });
+
+    revalidatePath('/vandy-dashboard/orders');
     return { success: true };
   } catch (error) {
     return { success: false };
