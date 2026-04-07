@@ -117,7 +117,7 @@ export async function updateOrderStatus(orderId: string, newStatus: string) {
 
     await connectToDatabase();
 
-    // Security check: ensure the order belongs to this Vandy
+    // ensure the order belongs to this Vandy specifically
     const order = await Order.findOneAndUpdate(
       { _id: orderId, vandyId: userId },
       { status: newStatus },
@@ -126,7 +126,10 @@ export async function updateOrderStatus(orderId: string, newStatus: string) {
 
     if (!order) throw new Error('Order not found or unauthorized');
 
+    // Revalidate the Vandy Dashboard and the specific Order Tracking page
     revalidatePath('/vandy-dashboard/orders');
+    revalidatePath(`/orders/${orderId}`);
+
     return { success: true };
   } catch (error) {
     console.error('Error updating order:', error);
@@ -174,6 +177,7 @@ export async function submitOrderPayment(orderId: string, trxId: string) {
     if (!updatedOrder) throw new Error('Order not found');
 
     revalidatePath('/cart');
+    revalidatePath(`/orders/${orderId}`);
     return { success: true };
   } catch (error) {
     console.error('Error submitting payment:', error);
