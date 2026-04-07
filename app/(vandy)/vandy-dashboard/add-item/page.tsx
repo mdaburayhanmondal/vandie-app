@@ -122,20 +122,32 @@ const AddItemPage = () => {
           ></textarea>
         </div>
 
-        <div className="flex items-center gap-x-3 bg-gray-50 p-3 rounded-md">
-          <input
-            type="checkbox"
-            id="isAvailable"
-            name="isAvailable"
-            defaultChecked
-            className="w-5 h-5 accent-green-600"
-          />
-          <label
-            htmlFor="isAvailable"
-            className="text-sm font-medium text-gray-700 cursor-pointer"
-          >
-            Item is currently available for order
-          </label>
+        <div className="flex w-full justify-between">
+          <div className="flex items-center gap-x-3 bg-gray-50 p-3 rounded-md">
+            <input
+              type="checkbox"
+              id="isAvailable"
+              name="isAvailable"
+              defaultChecked
+              className="w-5 h-5 accent-green-600"
+            />
+            <label
+              htmlFor="isAvailable"
+              className="text-sm font-medium text-gray-700 cursor-pointer"
+            >
+              Item is currently available for order
+            </label>
+          </div>
+          <div className="flex flex-col gap-y-1">
+            <label className="text-sm font-medium text-gray-700">
+              Pre Pay Amount
+            </label>
+            <input
+              type="text"
+              name="prePayAmount"
+              className="border border-gray-300 w-full px-3 py-2 rounded-md focus:ring-2 focus:ring-green-500 outline-none"
+            />
+          </div>
         </div>
 
         <div className="flex flex-col gap-y-1">
