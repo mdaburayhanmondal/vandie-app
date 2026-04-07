@@ -149,3 +149,34 @@ export async function rejectOrderRequest(orderId: string) {
     return { success: false };
   }
 }
+
+// submit trxid (foodie)
+export async function submitOrderPayment(orderId: string, trxId: string) {
+  try {
+    const { userId } = await auth();
+    if (!userId) throw new Error('Unauthorized');
+
+    await connectToDatabase();
+
+    const updatedOrder = await Order.findOneAndUpdate(
+      { _id: orderId, foodieId: userId },
+      {
+        status: 'paid',
+        paymentDetails: {
+          trxId: trxId,
+          method: 'bKash',
+          paidAt: new Date(),
+        },
+      },
+      { new: true },
+    );
+
+    if (!updatedOrder) throw new Error('Order not found');
+
+    revalidatePath('/cart');
+    return { success: true };
+  } catch (error) {
+    console.error('Error submitting payment:', error);
+    return { success: false };
+  }
+}
