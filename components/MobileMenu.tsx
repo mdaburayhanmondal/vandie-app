@@ -42,11 +42,11 @@ const MobileMenu = ({ dbUser }: { dbUser: IUser | null }) => {
           </li>
           <li>
             <ActiveLink
-              href="/cravings"
+              href="/cart"
               className="p-2"
               activeClassName="text-blue-600 font-semibold"
             >
-              Cravings
+              Cart
             </ActiveLink>
           </li>
           <li>
@@ -93,7 +93,7 @@ const MobileMenu = ({ dbUser }: { dbUser: IUser | null }) => {
           </li>
           <li>
             <ActiveLink
-              href="/orders"
+              href="/vandy-dashboard/orders"
               className="p-2"
               activeClassName="text-blue-600 font-semibold"
             >
@@ -102,11 +102,11 @@ const MobileMenu = ({ dbUser }: { dbUser: IUser | null }) => {
           </li>
           <li>
             <ActiveLink
-              href="/cravings"
+              href="/cart"
               className="p-2"
               activeClassName="text-blue-600 font-semibold"
             >
-              Cravings
+              Cart
             </ActiveLink>
           </li>
           <li>
