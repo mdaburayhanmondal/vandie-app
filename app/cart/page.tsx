@@ -16,13 +16,9 @@ import {
   FaMinus,
   FaArrowLeft,
   FaStore,
-  FaReceipt,
-  FaClock,
-  FaCalendarAlt,
   FaSpinner,
   FaHourglassHalf,
   FaCheckCircle,
-  FaExclamationCircle,
   FaWallet,
 } from 'react-icons/fa';
 
@@ -99,7 +95,7 @@ export default function CartPage() {
     const result = await createOrderRequest({
       vandyId: cart[0].vandyId,
       vandyName: cart[0].vandyName,
-      items: formattedItems, // Send the mapped items
+      items: formattedItems,
       pickupDate,
       pickupTime,
       totalPrice,
@@ -125,6 +121,23 @@ export default function CartPage() {
       clearCart();
       const updated = await getActiveOrder();
       setActiveOrder(updated);
+    }
+    setLoading(false);
+  };
+
+  // Centralized handler for cancelling an active order request
+  const handleCancelRequest = async () => {
+    if (!activeOrder) return;
+    if (!confirm('Are you sure you want to cancel this order?')) return;
+
+    setLoading(true);
+    const result = await cancelOrder(activeOrder._id);
+
+    if (result.success) {
+      setActiveOrder(null);
+      setTrxId('');
+    } else {
+      alert('Failed to cancel order. Please try again.');
     }
     setLoading(false);
   };
@@ -166,6 +179,8 @@ export default function CartPage() {
     );
   }
 
+  const vandyName = activeOrder?.vandyName || cart[0]?.vandyName;
+
   return (
     <section className="max-w-4xl mx-auto px-6 py-10 min-h-screen">
       <div className="flex items-center justify-between mb-8">
@@ -196,7 +211,7 @@ export default function CartPage() {
                 Ordering from
               </p>
               <h2 className="text-2xl font-black italic text-gray-900 uppercase tracking-tighter">
-                {activeOrder?.vandyName || cart[0]?.vandyName}
+                {vandyName}
               </h2>
             </div>
           </div>
@@ -243,6 +258,7 @@ export default function CartPage() {
               ))}
             </div>
           : <div className="bg-white rounded-[2.5rem] border border-gray-100 p-10 text-center shadow-sm">
+              {/* STATUS: REQUESTED */}
               {activeOrder.status === 'requested' && (
                 <div className="space-y-6">
                   <FaHourglassHalf
@@ -257,18 +273,16 @@ export default function CartPage() {
                     {activeOrder.pickupTime}.
                   </p>
                   <button
-                    onClick={() =>
-                      cancelOrder(activeOrder._id).then(() =>
-                        setActiveOrder(null),
-                      )
-                    }
-                    className="text-red-400 font-bold uppercase text-[10px] underline"
+                    onClick={handleCancelRequest}
+                    disabled={loading}
+                    className="text-red-400 font-bold uppercase text-[10px] underline hover:text-red-600 transition-colors disabled:opacity-50"
                   >
                     Cancel Request
                   </button>
                 </div>
               )}
 
+              {/* STATUS: APPROVED */}
               {activeOrder.status === 'approved' && (
                 <div className="space-y-6">
                   <FaCheckCircle size={40} className="text-green-500 mx-auto" />
@@ -276,6 +290,9 @@ export default function CartPage() {
                     Approved!
                   </h3>
                   <div className="p-6 bg-orange-50 border border-orange-100 rounded-3xl space-y-4">
+                    <p className="text-[10px] font-black text-orange-400 uppercase tracking-widest">
+                      Pre-Payment Due
+                    </p>
                     <p className="text-3xl font-black text-gray-900">
                       {activeOrder.totalPrePay}৳
                     </p>
@@ -284,19 +301,34 @@ export default function CartPage() {
                       placeholder="Enter bKash TrxID"
                       value={trxId}
                       onChange={(e) => setTrxId(e.target.value.toUpperCase())}
-                      className="w-full px-4 py-4 bg-white border-2 border-orange-200 rounded-2xl font-black text-center focus:ring-4 focus:ring-orange-100 outline-none uppercase"
+                      className="w-full px-4 py-4 bg-white border-2 border-orange-200 rounded-2xl font-black text-center focus:ring-4 focus:ring-orange-100 outline-none uppercase placeholder:text-gray-300"
                     />
-                    <button
-                      onClick={handlePaymentSubmit}
-                      disabled={loading}
-                      className="w-full py-4 bg-black text-white rounded-2xl font-black uppercase shadow-xl"
-                    >
-                      {loading ? 'Submitting...' : 'Confirm Payment'}
-                    </button>
+                    <div className="space-y-3">
+                      <button
+                        onClick={handlePaymentSubmit}
+                        disabled={loading}
+                        className="w-full py-4 bg-black text-white rounded-2xl font-black uppercase shadow-xl hover:bg-orange-600 transition-all disabled:opacity-50"
+                      >
+                        {loading ?
+                          <FaSpinner className="animate-spin mx-auto" />
+                        : 'Confirm Payment'}
+                      </button>
+                      <button
+                        onClick={handleCancelRequest}
+                        disabled={loading}
+                        className="w-full py-2 text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] hover:text-red-500 transition-colors hover:cursor-pointer"
+                      >
+                        I changed my mind,{' '}
+                        <span className="underline underline-offset-2">
+                          cancel order
+                        </span>
+                      </button>
+                    </div>
                   </div>
                 </div>
               )}
 
+              {/* STATUS: PAID (Waiting for Verification) */}
               {activeOrder.status === 'paid' && (
                 <div className="space-y-6">
                   <FaWallet
@@ -334,13 +366,13 @@ export default function CartPage() {
                     type="date"
                     value={pickupDate}
                     onChange={(e) => setPickupDate(e.target.value)}
-                    className="w-full p-3 bg-gray-50 border rounded-xl text-xs font-bold"
+                    className="w-full p-3 bg-gray-50 border border-gray-100 rounded-xl text-xs font-bold focus:ring-2 focus:ring-orange-200 outline-none"
                   />
                   <input
                     type="time"
                     value={pickupTime}
                     onChange={(e) => setPickupTime(e.target.value)}
-                    className="w-full p-3 bg-gray-50 border rounded-xl text-xs font-bold"
+                    className="w-full p-3 bg-gray-50 border border-gray-100 rounded-xl text-xs font-bold focus:ring-2 focus:ring-orange-200 outline-none"
                   />
                 </div>
                 <div className="space-y-4 border-t pt-4">
@@ -364,9 +396,11 @@ export default function CartPage() {
                 <button
                   onClick={handleCheckAvailability}
                   disabled={loading}
-                  className="w-full py-4 bg-black text-white rounded-2xl font-black uppercase shadow-lg hover:bg-orange-600 transition-all"
+                  className="w-full py-4 bg-black text-white rounded-2xl font-black uppercase shadow-lg hover:bg-orange-600 transition-all active:scale-[0.98] flex justify-center"
                 >
-                  {loading ? 'Checking...' : 'Check Availability'}
+                  {loading ?
+                    <FaSpinner className="animate-spin" />
+                  : 'Check Availability'}
                 </button>
               </div>
             : <div className="text-center py-6">
