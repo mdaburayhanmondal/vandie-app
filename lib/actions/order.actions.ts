@@ -184,3 +184,22 @@ export async function submitOrderPayment(orderId: string, trxId: string) {
     return { success: false };
   }
 }
+
+// Fetch all orders for the logged-in Foodie
+export async function getUserOrderHistory() {
+  try {
+    const { userId } = await auth();
+    if (!userId) throw new Error('Unauthorized');
+
+    await connectToDatabase();
+
+    const allOrders = await Order.find({ foodieId: userId })
+      .sort({ createdAt: -1 })
+      .lean();
+
+    return JSON.parse(JSON.stringify(allOrders));
+  } catch (error) {
+    console.error('Error fetching user history:', error);
+    return [];
+  }
+}
