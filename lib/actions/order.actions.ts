@@ -203,3 +203,51 @@ export async function getUserOrderHistory() {
     return [];
   }
 }
+
+// Fetch financial stats for the Vandy Dashboard
+export async function getVandySalesStats() {
+  try {
+    const { userId } = await auth();
+    if (!userId) throw new Error('Unauthorized');
+
+    await connectToDatabase();
+
+    // all completed orders
+    const completedOrders = await Order.find({
+      vandyId: userId,
+      status: 'completed',
+    }).lean();
+
+    // today's stats
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const todayOrders = completedOrders.filter(
+      (order) => new Date(order.createdAt) >= today,
+    );
+
+    const totalRevenue = completedOrders.reduce(
+      (acc, order) => acc + order.grandTotal,
+      0,
+    );
+    const todayRevenue = todayOrders.reduce(
+      (acc, order) => acc + order.grandTotal,
+      0,
+    );
+
+    return {
+      totalRevenue,
+      todayRevenue,
+      totalOrders: completedOrders.length,
+      todayOrdersCount: todayOrders.length,
+    };
+  } catch (error) {
+    console.error('Stats Error:', error);
+    return {
+      totalRevenue: 0,
+      todayRevenue: 0,
+      totalOrders: 0,
+      todayOrdersCount: 0,
+    };
+  }
+}
