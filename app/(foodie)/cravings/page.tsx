@@ -1,132 +1,58 @@
-import AddToCartButton from '@/components/AddToCartBtn';
 import CategoryFilters from '@/components/CategoryFilters';
 import SearchInput from '@/components/SearchInput';
+import FoodieItemCard from '@/components/FoodieItemCard';
 import { getAvailableItems } from '@/lib/actions/item.actions';
-import Link from 'next/link';
-
-import { FaStore, FaMapMarkerAlt } from 'react-icons/fa';
 
 const CravingsPage = async ({
   searchParams,
 }: {
-  searchParams: Promise<{ search: string; category: string }>;
+  searchParams: Promise<{ search?: string; category?: string }>;
 }) => {
-  const searchParamsObj = await searchParams;
+  const searchParamsObj = (await searchParams) || {};
   const searchQuery = searchParamsObj.search || '';
   const categoryQuery = searchParamsObj.category || 'All';
+
   const items = await getAvailableItems(searchQuery, categoryQuery);
 
   return (
     <section className="min-h-screen bg-gray-50 pb-20">
-      {/* 1. Hero & Search Header */}
-      <div className="bg-orange-600 text-white pt-16 pb-24 px-6">
-        <div className="max-w-7xl mx-auto text-center">
-          <h1 className="text-4xl md:text-5xl font-black italic tracking-tighter mb-4">
+      {/* 1. Hero Section */}
+      <div className="bg-orange-600 text-white pt-16 pb-24 px-6 relative overflow-hidden">
+        {/* Subtle background decoration */}
+        <div className="absolute top-0 left-0 w-64 h-64 bg-white/5 rounded-full -ml-20 -mt-20 blur-3xl" />
+
+        <div className="max-w-7xl mx-auto text-center relative z-10">
+          <h1 className="text-4xl md:text-6xl font-black italic tracking-tighter mb-4 uppercase">
             DISCOVER YOUR CRAVINGS
           </h1>
-          <p className="text-orange-100 text-lg mb-8 max-w-2xl mx-auto font-medium">
-            Find the best street food from the most talented nomadic artisans in
-            your neighborhood.
+          <p className="text-orange-100 text-lg mb-8 max-w-2xl mx-auto font-medium italic">
+            Artisan street food, curated for your neighborhood.
           </p>
 
-          {/* Search Bar Visual Placeholder */}
           <SearchInput />
         </div>
       </div>
 
-      {/* 2. Main Marketplace Feed */}
-      <div className="max-w-7xl mx-auto px-6 -mt-12">
-        {/* Category Quick-Filters Visual */}
-        <CategoryFilters />
+      {/* 2. Marketplace Feed */}
+      <div className="max-w-7xl mx-auto px-6 -mt-12 relative z-20">
+        {/* Category Buttons */}
+        <div className="mb-8">
+          <CategoryFilters />
+        </div>
 
         {items.length === 0 ?
-          <div className="bg-white rounded-3xl p-20 text-center shadow-sm border border-gray-100">
-            <h2 className="text-2xl font-bold text-gray-400">
-              No cravings available right now.
+          <div className="bg-white rounded-[3rem] p-20 text-center shadow-sm border border-gray-100">
+            <h2 className="text-3xl font-black italic uppercase tracking-tighter text-gray-300">
+              No {categoryQuery !== 'All' ? categoryQuery : ''} Cravings Found
             </h2>
-            <p className="text-gray-400 mt-2">
-              Check back later when our Vandies are live!
+            <p className="text-gray-400 mt-2 font-medium">
+              Try a different category or search term!
             </p>
           </div>
-        : <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mt-8">
-            {items.map((item: any) => {
-              return (
-                <div
-                  key={item._id}
-                  className="bg-white rounded-3xl border border-gray-100 shadow-sm hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 overflow-hidden flex flex-col h-full"
-                >
-                  {/* Visual Placeholder for Food Image */}
-                  <Link href={`/cravings/${item._id}`}>
-                    <div className="h-48 bg-orange-100 relative overflow-hidden flex items-center justify-center">
-                      <span className="text-orange-300 font-black text-5xl opacity-30 italic">
-                        VANDIE
-                      </span>
-                      <span className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-black text-orange-600 shadow-sm">
-                        {item.category}
-                      </span>
-                    </div>
-                  </Link>
-
-                  <div className="p-5 flex-1 flex flex-col">
-                    {/* Store Link */}
-                    <Link
-                      href={`/vandies/${item.ownerId}`}
-                      className="flex items-center gap-x-2 text-xs font-bold text-orange-600 mb-2 w-fit"
-                    >
-                      <FaStore size={12} />
-                      <span className="uppercase tracking-tighter hover:underline">
-                        {item.storeName}
-                      </span>
-                      {item.isVandyLive ?
-                        <span className="text-[10px] bg-green-100 text-green-600 px-1 rounded ml-1">
-                          Live Now
-                        </span>
-                      : <span className="text-[10px] bg-red-100 text-red-600 px-1 rounded ml-1">
-                          OFFLINE
-                        </span>
-                      }
-                    </Link>
-
-                    <Link href={`/cravings/${item._id}`}>
-                      <h3 className="text-xl font-extrabold text-gray-900 leading-tight mb-2">
-                        {item.name}
-                      </h3>
-                    </Link>
-
-                    <p className="text-gray-500 text-sm line-clamp-2 mb-4 flex-1 italic">
-                      {item.description ||
-                        'Freshly prepared by our artisan chef.'}
-                    </p>
-
-                    <div className="flex items-center gap-x-1 text-gray-400 text-[10px] font-bold uppercase tracking-widest mb-4">
-                      <FaMapMarkerAlt size={10} />
-                      <span>{item.location}</span>
-                    </div>
-
-                    <div className="flex justify-between items-center pt-4 border-t border-gray-50 mt-auto">
-                      <div className="flex flex-col">
-                        <span className="text-[10px] text-gray-400 font-bold uppercase tracking-tighter">
-                          Price
-                        </span>
-                        <span className="text-2xl font-black text-gray-900">
-                          {item.price}৳
-                        </span>
-                      </div>
-
-                      {item.isVandyLive ?
-                        <AddToCartButton item={item} />
-                      : <button
-                          disabled
-                          className="bg-gray-100 text-gray-400 px-5 py-2 rounded-2xl text-xs font-black uppercase cursor-not-allowed"
-                        >
-                          Closed
-                        </button>
-                      }
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
+        : <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+            {items.map((item: any) => (
+              <FoodieItemCard key={item._id.toString()} item={item} />
+            ))}
           </div>
         }
       </div>
