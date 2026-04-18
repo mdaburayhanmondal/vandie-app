@@ -207,3 +207,29 @@ export async function getItemDetails(itemId: string) {
     return null;
   }
 }
+
+export async function toggleItemAvailability(
+  itemId: string,
+  currentStatus: boolean,
+) {
+  try {
+    const { userId } = await auth();
+    if (!userId) throw new Error('Unauthorized');
+
+    await connectToDatabase();
+
+    const updatedItem = await Item.findOneAndUpdate(
+      { _id: itemId, ownerId: userId },
+      { isAvailable: !currentStatus },
+      { new: true },
+    );
+
+    if (!updatedItem) throw new Error('Item not found or unauthorized');
+
+    revalidatePath('/vandy-dashboard');
+    return { success: true, isAvailable: updatedItem.isAvailable };
+  } catch (error) {
+    console.error('Toggle Error:', error);
+    return { success: false };
+  }
+}
