@@ -150,7 +150,7 @@ export async function deleteItem(itemId: string) {
 export async function getAvailableItems(search: string, category: string) {
   try {
     await connectToDatabase();
-    let queries = { isAvailable: true };
+    let queries: any = { isAvailable: true };
     if (search) {
       queries = {
         ...queries,
