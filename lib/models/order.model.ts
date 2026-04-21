@@ -70,6 +70,11 @@ const OrderSchema = new Schema(
       method: { type: String },
       paidAt: { type: Date },
     },
+    review: {
+      rating: { type: Number, min: 1, max: 5 },
+      comment: { type: String, trim: true },
+      createdAt: { type: Date },
+    },
   },
   { timestamps: true },
 );
