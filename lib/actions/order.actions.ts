@@ -4,6 +4,7 @@ import { auth } from '@clerk/nextjs/server';
 import { connectToDatabase } from '../db';
 import Order from '../models/order.model';
 import { revalidatePath } from 'next/cache';
+import Store from '../models/store.model';
 
 //  Create the initial Order Request (foodie)
 export async function createOrderRequest(orderData: any) {
@@ -249,5 +250,63 @@ export async function getVandySalesStats() {
       totalOrders: 0,
       todayOrdersCount: 0,
     };
+  }
+}
+
+// submit order review
+export async function submitOrderReview(
+  orderId: string,
+  rating: number,
+  comment: string,
+) {
+  try {
+    const { userId } = await auth();
+    if (!userId) throw new Error('Unauthorized');
+
+    await connectToDatabase();
+
+    // update the specific order with the review data
+    const order = await Order.findOneAndUpdate(
+      { _id: orderId, foodieId: userId, status: 'completed' },
+      {
+        review: {
+          rating,
+          comment,
+          createdAt: new Date(),
+        },
+      },
+      { new: true },
+    );
+
+    if (!order) throw new Error('Order not found or not eligible for review');
+
+    // recalculate Vandy's average rating
+    // we fetch all orders for this Vandy that have a review rating
+    const allReviews = await Order.find({
+      vandyId: order.vandyId,
+      'review.rating': { $exists: true },
+    }).select('review.rating');
+
+    if (allReviews.length > 0) {
+      const sum = allReviews.reduce((acc, curr) => acc + curr.review.rating, 0);
+      const avgRating = sum / allReviews.length;
+
+      await Store.findOneAndUpdate(
+        { ownerId: order.vandyId },
+        {
+          averageRating: Number(avgRating.toFixed(1)),
+          totalReviews: allReviews.length,
+        },
+      );
+    }
+
+    revalidatePath(`/orders/${orderId}`);
+    revalidatePath('/orders');
+    revalidatePath(`/vandies/${order.vandyId}`);
+
+    return { success: true };
+  } catch (error) {
+    console.error('Review Error:', error);
+    return { success: false };
   }
 }
