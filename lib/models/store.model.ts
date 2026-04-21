@@ -9,6 +9,8 @@ export interface IStore {
   coverImage?: string;
   applicationStatus: 'pending' | 'approved' | 'rejected';
   isLive: boolean;
+  averageRating: number;
+  totalReviews: number;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -45,6 +47,14 @@ const StoreSchema = new Schema(
     isLive: {
       type: Boolean,
       default: false,
+    },
+    averageRating: {
+      type: Number,
+      default: 0,
+    },
+    totalReviews: {
+      type: Number,
+      default: 0,
     },
   },
   {
