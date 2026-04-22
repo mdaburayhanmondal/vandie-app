@@ -147,48 +147,48 @@ export async function deleteItem(itemId: string) {
   }
 }
 
-export async function getAvailableItems(search: string, category: string) {
+export async function getAvailableItems(
+  searchQuery: string,
+  categoryQuery: string,
+) {
   try {
     await connectToDatabase();
-    let queries: any = { isAvailable: true };
-    if (search) {
-      queries = {
-        ...queries,
-        $or: [
-          { name: { $regex: search, $options: 'i' } },
-          { description: { $regex: search, $options: 'i' } },
-        ],
-      };
-    }
 
-    if (category && category !== 'All') {
-      queries = { ...queries, category: category };
-    }
+    const filter: any = { isAvailable: true };
+    if (categoryQuery !== 'All') filter.category = categoryQuery;
+    if (searchQuery) filter.name = { $regex: searchQuery, $options: 'i' };
 
-    const availableItems = await Item.find(queries)
-      .sort({ createdAt: -1 })
-      .lean();
-    if (!availableItems || availableItems.length === 0) {
-      return [];
-    }
+    /**
+     * Aggregation Pipeline:
+     * 1. Filter items
+     * 2. Look up the Store (Vandy) details for each item
+     * 3. Merge the averageRating and totalReviews into the item object
+     */
+    const items = await Item.aggregate([
+      { $match: filter },
+      {
+        $lookup: {
+          from: 'stores', // The collection name in MongoDB
+          localField: 'ownerId', // clerkId in Item
+          foreignField: 'ownerId', // ownerId in Store
+          as: 'vandyDetails',
+        },
+      },
+      { $unwind: '$vandyDetails' },
+      {
+        $addFields: {
+          averageRating: '$vandyDetails.averageRating',
+          totalReviews: '$vandyDetails.totalReviews',
+          storeName: '$vandyDetails.storeName',
+          isVandyLive: '$vandyDetails.isLive',
+          location: '$vandyDetails.location',
+        },
+      },
+    ]);
 
-    const ownerIds = [...new Set(availableItems.map((item) => item.ownerId))];
-    const stores = await Store.find({ ownerId: { $in: ownerIds } }).lean();
-
-    const itemsWithStore = availableItems.map((item) => {
-      const storeInfo = stores.find((store) => store.ownerId === item.ownerId);
-      return {
-        ...item,
-        storeName: storeInfo?.storeName || 'Unknown Vandy',
-        location: storeInfo?.location || 'Unknown Location',
-        isVandyLive: storeInfo?.isLive || false,
-      };
-    });
-
-    return JSON.parse(JSON.stringify(itemsWithStore));
-  } catch (err: unknown) {
-    const msg = err instanceof Error ? err.message : 'Unknown error';
-    console.error('Error fetching marketplace items:', msg);
+    return JSON.parse(JSON.stringify(items));
+  } catch (error) {
+    console.error('Fetch Items Error:', error);
     return [];
   }
 }
