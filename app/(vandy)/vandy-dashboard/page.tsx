@@ -15,6 +15,8 @@ import {
   FaCheckCircle,
   FaTimesCircle,
   FaSearch,
+  FaCog,
+  FaChevronRight,
 } from 'react-icons/fa';
 import Link from 'next/link';
 
@@ -70,6 +72,25 @@ const VandyDashboard = async ({
             className="flex items-center gap-2 bg-white border-2 border-gray-100 px-6 py-2 rounded-full text-[10px] font-black uppercase tracking-widest hover:border-orange-500 hover:text-orange-600 transition-all shadow-sm"
           >
             Manage Live Orders <FaArrowRight />
+          </Link>
+          <Link
+            href="/vandy-dashboard/settings"
+            className="flex items-center justify-between p-6 bg-gray-50 rounded-3xl border border-gray-100 group hover:bg-black transition-all duration-300"
+          >
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-white rounded-2xl text-gray-900 group-hover:scale-110 transition-transform">
+                <FaCog size={20} />
+              </div>
+              <div>
+                <h3 className="font-black uppercase italic text-gray-900 group-hover:text-white transition-colors">
+                  Branding
+                </h3>
+                <p className="text-[10px] font-bold text-gray-400 group-hover:text-gray-500 uppercase tracking-widest">
+                  Customize profile
+                </p>
+              </div>
+            </div>
+            <FaChevronRight className="text-gray-200 group-hover:text-white" />
           </Link>
         </div>
       </header>
