@@ -6,6 +6,7 @@ import { redirect } from 'next/navigation';
 import User from '../models/user.model';
 import { revalidatePath } from 'next/cache';
 import Item from '../models/item.model';
+import Order from '../models/order.model';
 
 export async function createStore(formData: FormData) {
   try {
@@ -102,13 +103,22 @@ export async function getVandyDetails(vandyId: string) {
   try {
     await connectToDatabase();
     const vandy = await Store.findOne({ ownerId: vandyId }).lean();
-    if (!vandy) {
-      return null;
-    }
+    if (!vandy) return null;
+
     const items = await Item.find({ ownerId: vandyId })
       .sort({ category: 1 })
       .lean();
-    return JSON.parse(JSON.stringify({ vandy, items }));
+
+    // 5 most recent reviews
+    const reviews = await Order.find({
+      vandyId: vandyId,
+      'review.rating': { $exists: true },
+    })
+      .sort({ 'review.createdAt': -1 })
+      .limit(5)
+      .lean();
+
+    return JSON.parse(JSON.stringify({ vandy, items, reviews }));
   } catch (err) {
     console.error('Database Error:', err);
     return null;
