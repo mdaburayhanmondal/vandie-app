@@ -151,3 +151,39 @@ export async function toggleLiveStatus(
     return { success: false };
   }
 }
+
+export async function updateStore(formData: FormData) {
+  try {
+    const { userId } = await auth();
+    if (!userId) throw new Error('Unauthorized');
+
+    await connectToDatabase();
+
+    const storeName = formData.get('storeName') as string;
+    const bio = formData.get('bio') as string;
+    const location = formData.get('location') as string;
+    const coverImage = formData.get('coverImage') as string;
+
+    const updatedStore = await Store.findOneAndUpdate(
+      { ownerId: userId },
+      {
+        storeName,
+        bio,
+        location,
+        coverImage,
+      },
+      { new: true },
+    );
+
+    if (!updatedStore) throw new Error('Store not found');
+
+    revalidatePath('/vandy-dashboard');
+    revalidatePath('/vandy-dashboard/settings');
+    revalidatePath(`/vandies/${userId}`);
+
+    return { success: true };
+  } catch (error) {
+    console.error('Update Store Error:', error);
+    return { success: false, error: 'Failed to update profile details.' };
+  }
+}
