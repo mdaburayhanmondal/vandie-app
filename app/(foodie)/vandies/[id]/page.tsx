@@ -1,6 +1,4 @@
-import AddToCartButton from '@/components/AddToCartBtn';
 import { getVandyDetails } from '@/lib/actions/store.actions';
-import { IItem } from '@/lib/models/item.model';
 import Link from 'next/link';
 import Image from 'next/image';
 import React from 'react';
@@ -10,6 +8,7 @@ import {
   FaStar,
   FaQuoteLeft,
 } from 'react-icons/fa';
+import FoodieItemCard from '@/components/FoodieItemCard';
 
 const VandyDetailsPage = async ({
   params,
@@ -53,6 +52,7 @@ const VandyDetailsPage = async ({
         )}
         <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/20 to-transparent" />
 
+        {/* Navigation Overlays */}
         <div className="absolute top-8 left-8">
           <Link
             href="/vandies"
@@ -62,6 +62,7 @@ const VandyDetailsPage = async ({
           </Link>
         </div>
 
+        {/* Floating Profile Info in Banner */}
         <div className="absolute bottom-0 left-0 w-full p-8 md:p-12">
           <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-end justify-between gap-6">
             <div>
@@ -101,6 +102,7 @@ const VandyDetailsPage = async ({
 
       <div className="max-w-7xl mx-auto px-6 py-12">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+          {/* Left Side: Bio & Reviews */}
           <div className="lg:col-span-1 space-y-12">
             <div className="bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-sm">
               <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-4 border-b pb-3">
@@ -146,6 +148,7 @@ const VandyDetailsPage = async ({
             )}
           </div>
 
+          {/* Right Side: Menu Items (Using the Reusable FoodieItemCard) */}
           <div className="lg:col-span-2">
             <div className="flex items-center gap-4 mb-10">
               <h2 className="text-2xl font-black text-gray-900 uppercase italic tracking-tighter shrink-0">
@@ -155,58 +158,29 @@ const VandyDetailsPage = async ({
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              {items.map((item: IItem) => (
-                <div
-                  key={item._id?.toString()}
-                  className="bg-white border border-gray-100 rounded-4xl p-6 shadow-sm hover:shadow-xl transition-all group"
-                >
-                  <div className="flex justify-between items-start mb-6">
-                    {/* Item Image Display */}
-                    <div className="h-24 w-24 bg-orange-50 rounded-2xl flex items-center justify-center overflow-hidden relative shrink-0">
-                      {item.image ?
-                        <Image
-                          src={item.image}
-                          alt={item.name}
-                          fill
-                          className="object-cover group-hover:scale-110 transition-transform duration-500"
-                          unoptimized
-                        />
-                      : <span className="text-orange-200 font-black text-3xl opacity-40 italic uppercase">
-                          {item.category.slice(0, 2)}
-                        </span>
-                      }
-                    </div>
-                    <div className="text-right">
-                      <span className="text-[10px] font-black text-gray-400 uppercase bg-gray-50 px-3 py-1 rounded-full border border-gray-100 tracking-tighter">
-                        {item.category}
-                      </span>
-                      <p className="text-2xl font-black text-gray-900 mt-2">
-                        {item.price}৳
-                      </p>
-                    </div>
-                  </div>
-
-                  <h3 className="text-xl font-black text-gray-900 group-hover:text-orange-600 transition-colors mb-2 italic uppercase tracking-tighter">
-                    {item.name}
-                  </h3>
-                  <p className="text-gray-500 text-xs italic line-clamp-2 mb-6 h-8 leading-relaxed">
-                    {item.description}
-                  </p>
-
-                  <AddToCartButton
-                    className="w-full bg-black text-white py-4 rounded-xl text-xs font-black uppercase hover:bg-orange-600 transition-all shadow-lg active:scale-95 disabled:bg-gray-100"
-                    item={
-                      {
-                        ...item,
-                        storeName: vandy.storeName,
-                        isVandyLive: vandy.isLive,
-                        ownerId: vandy.ownerId,
-                      } as any
-                    }
-                  />
-                </div>
+              {items.map((item: any) => (
+                <FoodieItemCard
+                  key={item._id.toString()}
+                  item={{
+                    ...item,
+                    storeName: vandy.storeName,
+                    location: vandy.location,
+                    ownerId: vandy.ownerId,
+                    isVandyLive: vandy.isLive,
+                    averageRating: vandy.averageRating,
+                    totalReviews: vandy.totalReviews,
+                  }}
+                />
               ))}
             </div>
+
+            {items.length === 0 && (
+              <div className="py-20 text-center bg-white rounded-[2.5rem] border border-dashed border-gray-200">
+                <p className="text-gray-300 font-black italic uppercase tracking-tighter text-xl">
+                  The menu is empty for now.
+                </p>
+              </div>
+            )}
           </div>
         </div>
       </div>
