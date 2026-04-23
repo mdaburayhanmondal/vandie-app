@@ -2,13 +2,13 @@ import AddToCartButton from '@/components/AddToCartBtn';
 import { getVandyDetails } from '@/lib/actions/store.actions';
 import { IItem } from '@/lib/models/item.model';
 import Link from 'next/link';
+import Image from 'next/image';
 import React from 'react';
 import {
   FaMapMarkerAlt,
   FaChevronLeft,
   FaStar,
   FaQuoteLeft,
-  FaCalendarDay,
 } from 'react-icons/fa';
 
 const VandyDetailsPage = async ({
@@ -22,12 +22,12 @@ const VandyDetailsPage = async ({
   if (!data || !data.vandy) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh]">
-        <h1 className="text-2xl font-black text-gray-400 italic uppercase">
+        <h1 className="text-2xl font-black text-gray-400 italic uppercase tracking-tighter">
           Vandy not found!
         </h1>
         <Link
           href="/vandies"
-          className="mt-4 text-orange-600 font-bold uppercase text-xs tracking-widest hover:underline"
+          className="mt-4 text-orange-600 font-black uppercase text-xs tracking-widest hover:underline"
         >
           ← Back to directory
         </Link>
@@ -38,201 +38,172 @@ const VandyDetailsPage = async ({
   const { vandy, items, reviews } = data;
 
   return (
-    <section className="max-w-7xl mx-auto px-6 py-10 pb-32">
-      {/* 1. Vandy Header Card */}
-      <div className="bg-white p-8 md:p-12 rounded-[2.5rem] mb-12 border border-gray-100 shadow-sm relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-48 h-48 bg-orange-50 rounded-bl-full -mr-16 -mt-16 opacity-50" />
+    <section className="min-h-screen bg-gray-50">
+      {/* 1. Hero Cover Banner Section */}
+      <div className="h-64 md:h-96 w-full relative bg-orange-600">
+        {vandy.coverImage && (
+          <Image
+            src={vandy.coverImage}
+            alt={vandy.storeName}
+            fill
+            className="object-cover"
+            priority
+            unoptimized
+          />
+        )}
+        <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/20 to-transparent" />
 
-        <Link
-          href="/vandies"
-          className="inline-flex items-center gap-2 text-xs font-black text-gray-400 hover:text-orange-600 mb-8 uppercase tracking-widest transition-colors relative z-10"
-        >
-          <FaChevronLeft /> Back to directory
-        </Link>
+        {/* Navigation Overlays */}
+        <div className="absolute top-8 left-8">
+          <Link
+            href="/vandies"
+            className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-md px-4 py-2 rounded-full text-[10px] font-black text-white hover:bg-white hover:text-black transition-all uppercase tracking-widest"
+          >
+            <FaChevronLeft /> Back
+          </Link>
+        </div>
 
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 relative z-10">
-          <div className="flex-1">
-            <div className="flex flex-wrap items-center gap-3 mb-4">
-              <h1 className="text-5xl md:text-6xl font-black italic text-gray-900 tracking-tighter uppercase leading-none">
-                {vandy.storeName}
-              </h1>
-              {vandy.averageRating > 0 && (
-                <div className="flex items-center gap-2 bg-black text-white px-4 py-2 rounded-2xl shadow-xl shadow-orange-100">
-                  <FaStar className="text-orange-500" size={16} />
-                  <span className="font-black text-lg">
-                    {vandy.averageRating}
-                  </span>
-                  <span className="text-[10px] text-gray-400 font-bold uppercase tracking-tighter border-l border-gray-800 pl-2">
-                    {vandy.totalReviews} Reviews
-                  </span>
-                </div>
-              )}
-            </div>
-
-            <p className="text-gray-500 max-w-2xl text-lg italic leading-relaxed">
-              {vandy.bio ||
-                "This artisan is busy perfecting their craft and hasn't written a bio yet."}
-            </p>
-
-            <div className="flex flex-wrap items-center gap-4 mt-8">
-              <div className="flex items-center gap-1.5 text-xs font-black text-gray-400 uppercase tracking-widest">
-                <FaMapMarkerAlt className="text-orange-600" /> {vandy.location}
+        {/* Floating Profile Info in Banner */}
+        <div className="absolute bottom-0 left-0 w-full p-8 md:p-12">
+          <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-end justify-between gap-6">
+            <div>
+              <div className="flex items-center gap-3 mb-4">
+                <h1 className="text-4xl md:text-6xl font-black italic text-white tracking-tighter uppercase leading-none">
+                  {vandy.storeName}
+                </h1>
+                {vandy.averageRating > 0 && (
+                  <div className="hidden md:flex items-center gap-2 bg-orange-500 text-white px-4 py-2 rounded-2xl shadow-xl">
+                    <FaStar size={16} />
+                    <span className="font-black text-lg">
+                      {vandy.averageRating}
+                    </span>
+                  </div>
+                )}
               </div>
-              <span
-                className={`px-5 py-2 rounded-full text-[10px] font-black uppercase tracking-widest shadow-sm border ${
-                  vandy.isLive ?
-                    'bg-green-50 text-green-700 border-green-100'
-                  : 'bg-red-50 text-red-400 border-red-100'
-                }`}
-              >
-                {vandy.isLive ? '● Live Now' : '○ Currently Closed'}
-              </span>
+
+              <div className="flex flex-wrap items-center gap-4">
+                <div className="flex items-center gap-1.5 text-[10px] font-black text-white/80 uppercase tracking-widest bg-black/40 backdrop-blur-sm px-3 py-1.5 rounded-xl border border-white/10">
+                  <FaMapMarkerAlt className="text-orange-500" />{' '}
+                  {vandy.location}
+                </div>
+                <span
+                  className={`px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest border backdrop-blur-sm ${
+                    vandy.isLive ?
+                      'bg-green-500/20 text-green-400 border-green-500/30'
+                    : 'bg-red-500/20 text-red-400 border-red-500/30'
+                  }`}
+                >
+                  {vandy.isLive ? '● Live Now' : '○ Offline'}
+                </span>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Menu Section */}
-      <div className="flex items-center gap-6 mb-10">
-        <h2 className="text-3xl font-black text-gray-900 uppercase italic tracking-tighter shrink-0">
-          On the Menu
-        </h2>
-        <div className="h-0.5 flex-1 bg-gray-100 rounded-full" />
-      </div>
+      <div className="max-w-7xl mx-auto px-6 py-12">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+          {/* Left Side: Bio & Reviews */}
+          <div className="lg:col-span-1 space-y-12">
+            <div className="bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-sm">
+              <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-4 border-b pb-3">
+                The Artisan's Story
+              </h3>
+              <p className="text-gray-600 font-medium italic leading-relaxed">
+                {vandy.bio ||
+                  'Crafting unique street flavors for the community.'}
+              </p>
+            </div>
 
-      {items.length === 0 ?
-        <div className="py-20 text-center bg-gray-50 rounded-[3rem] border-2 border-dashed border-gray-200">
-          <p className="text-gray-400 font-bold italic">
-            This Vandy hasn't listed any items today.
-          </p>
-        </div>
-      : <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-20">
-          {items.map((item: IItem) => {
-            const enrichedItem = {
-              ...item,
-              storeName: vandy.storeName,
-              isVandyLive: vandy.isLive,
-            };
-
-            return (
-              <div
-                key={item._id?.toString()}
-                className="group bg-white border border-gray-100 rounded-[2.5rem] overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col relative"
-              >
-                <Link
-                  href={`/cravings/${item._id}`}
-                  className="h-44 bg-orange-50 flex items-center justify-center overflow-hidden"
-                >
-                  <span className="text-orange-200 font-black text-4xl opacity-40 italic uppercase group-hover:scale-110 transition-transform">
-                    {item.category}
+            {/* Top Review Preview */}
+            {reviews?.length > 0 && (
+              <div className="bg-black text-white p-8 rounded-[2.5rem] shadow-xl relative overflow-hidden">
+                <FaQuoteLeft
+                  className="absolute top-6 right-6 text-white/10"
+                  size={40}
+                />
+                <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-orange-500 mb-6">
+                  Latest Feedback
+                </h3>
+                <p className="text-lg font-black italic leading-tight mb-8">
+                  "{reviews[0].review.comment}"
+                </p>
+                <div className="flex items-center gap-2">
+                  <div className="flex text-orange-500">
+                    {[...Array(5)].map((_, i) => (
+                      <FaStar
+                        key={i}
+                        size={10}
+                        className={
+                          i < reviews[0].review.rating ?
+                            'fill-current'
+                          : 'text-gray-800'
+                        }
+                      />
+                    ))}
+                  </div>
+                  <span className="text-[9px] font-bold text-gray-500 uppercase">
+                    {new Date(reviews[0].review.createdAt).toLocaleDateString()}
                   </span>
-                </Link>
+                </div>
+              </div>
+            )}
+          </div>
 
-                <div className="p-8 flex-1 flex flex-col">
-                  <Link href={`/cravings/${item._id}`} className="block mb-3">
-                    <h3 className="text-2xl font-black text-gray-900 group-hover:text-orange-600 transition-colors leading-tight">
-                      {item.name}
-                    </h3>
-                  </Link>
+          {/* Right Side: Menu Items */}
+          <div className="lg:col-span-2">
+            <div className="flex items-center gap-4 mb-10">
+              <h2 className="text-2xl font-black text-gray-900 uppercase italic tracking-tighter shrink-0">
+                Fresh from the Cart
+              </h2>
+              <div className="h-0.5 flex-1 bg-gray-100 rounded-full" />
+            </div>
 
-                  <p className="text-gray-500 text-xs italic line-clamp-2 mb-8 leading-relaxed">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {items.map((item: IItem) => (
+                <div
+                  key={item._id?.toString()}
+                  className="bg-white border border-gray-100 rounded-4xl p-6 shadow-sm hover:shadow-xl transition-all group"
+                >
+                  <div className="flex justify-between items-start mb-6">
+                    <div className="h-24 w-24 bg-orange-50 rounded-2xl flex items-center justify-center overflow-hidden">
+                      <span className="text-orange-200 font-black text-3xl opacity-40 italic uppercase">
+                        {item.category.slice(0, 2)}
+                      </span>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-[10px] font-black text-gray-400 uppercase bg-gray-50 px-3 py-1 rounded-full">
+                        {item.category}
+                      </span>
+                      <p className="text-2xl font-black text-gray-900 mt-2">
+                        {item.price}৳
+                      </p>
+                    </div>
+                  </div>
+
+                  <h3 className="text-xl font-black text-gray-900 group-hover:text-orange-600 transition-colors mb-2 italic">
+                    {item.name}
+                  </h3>
+                  <p className="text-gray-500 text-xs italic line-clamp-2 mb-6">
                     {item.description}
                   </p>
 
-                  <div className="mt-auto pt-6 border-t border-gray-50 flex justify-between items-center">
-                    <div className="flex flex-col">
-                      <span className="text-[10px] text-gray-400 font-bold uppercase tracking-tighter mb-1">
-                        Price
-                      </span>
-                      <span className="text-2xl font-black text-gray-900 leading-none">
-                        <small className="text-sm font-bold mr-0.5 text-orange-600 italic">
-                          ৳
-                        </small>
-                        {item.price}
-                      </span>
-                    </div>
-
-                    {vandy.isLive && item.isAvailable ?
-                      <AddToCartButton item={enrichedItem as any} />
-                    : <button
-                        disabled
-                        className="bg-gray-100 text-gray-400 px-6 py-3 rounded-2xl text-[10px] font-black uppercase cursor-not-allowed tracking-widest"
-                      >
-                        {!vandy.isLive ? 'Offline' : 'Sold Out'}
-                      </button>
+                  <AddToCartButton
+                    className="w-full bg-black text-white py-4 rounded-xl text-xs font-black uppercase hover:bg-orange-600 transition-all shadow-lg active:scale-95 disabled:bg-gray-100"
+                    item={
+                      {
+                        ...item,
+                        storeName: vandy.storeName,
+                        isVandyLive: vandy.isLive,
+                        ownerId: vandy.ownerId,
+                      } as any
                     }
-                  </div>
+                  />
                 </div>
-              </div>
-            );
-          })}
-        </div>
-      }
-
-      {/* Reviews Section */}
-      <div className="mt-20">
-        <div className="flex items-center gap-6 mb-12">
-          <h2 className="text-3xl font-black text-gray-900 uppercase italic tracking-tighter shrink-0">
-            Wall of Love
-          </h2>
-          <div className="h-0.5 flex-1 bg-gray-100 rounded-full" />
-        </div>
-
-        {!reviews || reviews.length === 0 ?
-          <div className="bg-gray-50 p-16 rounded-[3rem] text-center border border-gray-100">
-            <p className="text-gray-400 font-bold italic uppercase tracking-widest text-sm">
-              No reviews yet. Be the first to try their food!
-            </p>
+              ))}
+            </div>
           </div>
-        : <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {reviews.map((review: any, idx: number) => (
-              <div
-                key={idx}
-                className="bg-white p-10 rounded-[3rem] border border-gray-50 shadow-sm relative group hover:border-orange-200 transition-all"
-              >
-                <FaQuoteLeft
-                  className="absolute top-8 right-8 text-orange-50 opacity-0 group-hover:opacity-100 transition-opacity"
-                  size={40}
-                />
-
-                <div className="flex items-center gap-1 text-orange-500 mb-4">
-                  {[...Array(5)].map((_, i) => (
-                    <FaStar
-                      key={i}
-                      size={14}
-                      className={
-                        i < review.review.rating ?
-                          'fill-current'
-                        : 'text-gray-100'
-                      }
-                    />
-                  ))}
-                </div>
-
-                <p className="text-gray-700 font-medium text-lg italic mb-8 leading-relaxed relative z-10">
-                  "{review.review.comment || 'Amazing food and great service!'}"
-                </p>
-
-                <div className="flex items-center justify-between pt-6 border-t border-gray-50">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-black rounded-2xl flex items-center justify-center text-white font-black text-xs uppercase">
-                      F
-                    </div>
-                    <div>
-                      <p className="text-[10px] font-black uppercase text-gray-900 tracking-widest">
-                        Verified Foodie
-                      </p>
-                      <p className="text-[9px] font-bold text-gray-400 flex items-center gap-1 uppercase">
-                        <FaCalendarDay />{' '}
-                        {new Date(review.review.createdAt).toLocaleDateString()}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        }
+        </div>
       </div>
     </section>
   );
