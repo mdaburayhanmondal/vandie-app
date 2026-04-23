@@ -1,22 +1,25 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { getVandyDetails, updateStore } from '@/lib/actions/store.actions';
 import { useUser } from '@clerk/nextjs';
 import {
   FaStore,
   FaMapMarkerAlt,
   FaIdCard,
-  FaImage,
   FaSpinner,
   FaCheckCircle,
   FaArrowLeft,
 } from 'react-icons/fa';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
+import CldImageUpload from '@/components/CldImageUpload';
 
 export default function VandySettingsPage() {
   const { user } = useUser();
+  const router = useRouter();
+
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [storeData, setStoreData] = useState<any>(null);
@@ -25,26 +28,87 @@ export default function VandySettingsPage() {
     text: string;
   } | null>(null);
 
+  const [coverImageUrl, setCoverImageUrl] = useState<string>('');
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+
+  // Memoize local preview URL
+  const localPreviewUrl = useMemo(() => {
+    if (selectedFile) return URL.createObjectURL(selectedFile);
+    return null;
+  }, [selectedFile]);
+
   useEffect(() => {
     if (user) {
       getVandyDetails(user.id).then((data) => {
-        setStoreData(data?.vandy);
+        if (data?.vandy) {
+          setStoreData(data.vandy);
+          setCoverImageUrl(data.vandy.coverImage || '');
+        }
         setLoading(false);
       });
     }
   }, [user]);
 
+  const uploadToCloudinary = async (file: File): Promise<string | null> => {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append(
+      'upload_preset',
+      process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET!,
+    );
+
+    try {
+      const response = await fetch(
+        `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`,
+        { method: 'POST', body: formData },
+      );
+      const data = await response.json();
+      return data.secure_url || null;
+    } catch (error) {
+      console.error('Cloudinary upload error:', error);
+      return null;
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
+    const formElement = e.currentTarget;
+
     setSaving(true);
     setMessage(null);
 
-    const formData = new FormData(e.currentTarget);
+    let finalImageUrl = coverImageUrl;
+
+    // 1. Handle actual Cloudinary upload if a new file is chosen
+    if (selectedFile) {
+      const uploadedUrl = await uploadToCloudinary(selectedFile);
+      if (!uploadedUrl) {
+        setMessage({
+          type: 'error',
+          text: 'Image upload failed. Please try again.',
+        });
+        setSaving(false);
+        return;
+      }
+      finalImageUrl = uploadedUrl;
+    }
+
+    // 2. Prepare FormData from the captured form reference
+    const formData = new FormData(formElement);
+    formData.set('coverImage', finalImageUrl);
+
     const result = await updateStore(formData);
 
     if (result.success) {
       setMessage({ type: 'success', text: 'Profile updated successfully!' });
+
+      // Update local states to refresh the UI properly
+      setCoverImageUrl(finalImageUrl);
+      setSelectedFile(null); // Clear the local blob to show the Cloudinary URL
+
       setTimeout(() => setMessage(null), 3000);
+      router.refresh();
     } else {
       setMessage({
         type: 'error',
@@ -94,17 +158,17 @@ export default function VandySettingsPage() {
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
-        {/* Left: Preview & Branding Tips */}
+        {/* Left: Preview */}
         <div className="md:col-span-1 space-y-6">
           <div className="bg-white rounded-4xl border border-gray-100 shadow-sm overflow-hidden">
             <div className="h-32 bg-orange-100 relative overflow-hidden flex items-center justify-center">
-              {storeData.coverImage ?
+              {localPreviewUrl || coverImageUrl ?
                 <Image
-                  src={storeData.coverImage}
+                  src={localPreviewUrl || coverImageUrl}
                   alt="Cover Preview"
                   fill
                   className="object-cover"
-                  unoptimized // Used because user-provided URLs can come from any domain
+                  unoptimized
                 />
               : <span className="text-orange-200 font-black italic uppercase text-2xl opacity-40">
                   Cover Preview
@@ -113,27 +177,17 @@ export default function VandySettingsPage() {
             </div>
             <div className="p-6">
               <h3 className="font-black text-gray-900 italic uppercase truncate">
-                {storeData.storeName}
+                {storeData?.storeName}
               </h3>
               <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">
-                {storeData.location}
+                {storeData?.location}
               </p>
               <div className="mt-4 pt-4 border-t border-gray-50">
                 <p className="text-[10px] text-gray-500 italic leading-relaxed line-clamp-3">
-                  "{storeData.bio}"
+                  "{storeData?.bio || 'No bio set yet...'}"
                 </p>
               </div>
             </div>
-          </div>
-
-          <div className="bg-black text-white p-6 rounded-4xl shadow-xl">
-            <h4 className="text-xs font-black uppercase tracking-widest text-orange-500 mb-2">
-              Pro Tip
-            </h4>
-            <p className="text-xs italic text-gray-400 leading-relaxed">
-              A catchy bio and a clear location help Foodies find you faster.
-              Make your store name unique!
-            </p>
           </div>
         </div>
 
@@ -150,9 +204,8 @@ export default function VandySettingsPage() {
               <input
                 type="text"
                 name="storeName"
-                defaultValue={storeData.storeName}
+                defaultValue={storeData?.storeName}
                 required
-                placeholder="Name your empire..."
                 className="w-full px-6 py-4 bg-gray-50 border-2 border-gray-100 rounded-2xl font-black text-gray-900 focus:ring-4 focus:ring-orange-100 outline-none transition-all"
               />
             </div>
@@ -163,15 +216,11 @@ export default function VandySettingsPage() {
               </label>
               <textarea
                 name="bio"
-                defaultValue={storeData.bio}
+                defaultValue={storeData?.bio}
                 required
                 maxLength={200}
-                placeholder="Tell foodies why your food is the best in the neighborhood..."
                 className="w-full px-6 py-4 bg-gray-50 border-2 border-gray-100 rounded-2xl font-medium italic text-gray-900 h-32 outline-none focus:ring-4 focus:ring-orange-100 transition-all resize-none"
               />
-              <p className="text-[9px] text-gray-400 text-right font-bold uppercase">
-                Max 200 characters
-              </p>
             </div>
 
             <div className="space-y-2">
@@ -181,23 +230,23 @@ export default function VandySettingsPage() {
               <input
                 type="text"
                 name="location"
-                defaultValue={storeData.location}
+                defaultValue={storeData?.location}
                 required
-                placeholder="e.g. Dhanmondi 27, KB Plaza Corner"
                 className="w-full px-6 py-4 bg-gray-50 border-2 border-gray-100 rounded-2xl font-bold text-gray-900 focus:ring-4 focus:ring-orange-100 outline-none transition-all"
               />
             </div>
 
-            <div className="space-y-2">
-              <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-gray-400">
-                <FaImage className="text-orange-600" /> Cover Image URL
-              </label>
+            <div className="space-y-4 pt-4 border-t border-gray-50">
+              <CldImageUpload
+                label="Store Cover Banner"
+                defaultValue={coverImageUrl}
+                onFileSelect={(file) => setSelectedFile(file)}
+              />
+              {/* Ensure the hidden input always has a valid string value */}
               <input
-                type="text"
+                type="hidden"
                 name="coverImage"
-                defaultValue={storeData.coverImage}
-                placeholder="Paste an image link (Unsplash, Imgur, etc.)"
-                className="w-full px-6 py-4 bg-gray-50 border-2 border-gray-100 rounded-2xl font-mono text-[10px] text-gray-500 focus:ring-4 focus:ring-orange-100 outline-none transition-all"
+                value={coverImageUrl || ''}
               />
             </div>
 
@@ -207,7 +256,9 @@ export default function VandySettingsPage() {
               className="w-full py-5 bg-black text-white rounded-2xl font-black uppercase text-sm tracking-[0.2em] shadow-xl hover:bg-orange-600 transition-all active:scale-95 disabled:bg-gray-200 disabled:shadow-none flex items-center justify-center gap-3"
             >
               {saving ?
-                <FaSpinner className="animate-spin" />
+                <>
+                  <FaSpinner className="animate-spin" /> Updating...
+                </>
               : 'Save Profile Changes'}
             </button>
           </form>
