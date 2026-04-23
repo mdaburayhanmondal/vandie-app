@@ -9,8 +9,10 @@ import {
   FaTimesCircle,
   FaSpinner,
   FaPlus,
+  FaUtensils,
 } from 'react-icons/fa';
 import Link from 'next/link';
+import Image from 'next/image';
 
 interface Item {
   _id: string;
@@ -18,13 +20,13 @@ interface Item {
   price: number;
   category: string;
   isAvailable: boolean;
+  image?: string;
 }
 
 export default function MyItems({ items: initialItems }: { items: Item[] }) {
   const [items, setItems] = useState(initialItems);
   const [processingId, setProcessingId] = useState<string | null>(null);
 
-  // Toggle availability
   const handleToggle = async (itemId: string, currentStatus: boolean) => {
     setProcessingId(itemId);
     const result = await toggleItemAvailability(itemId, currentStatus);
@@ -41,14 +43,8 @@ export default function MyItems({ items: initialItems }: { items: Item[] }) {
     setProcessingId(null);
   };
 
-  // Delete item handler
   const handleDelete = async (itemId: string) => {
-    if (
-      !confirm(
-        'Are you sure you want to delete this item? This cannot be undone.',
-      )
-    )
-      return;
+    if (!confirm('Are you sure you want to delete this item?')) return;
 
     setProcessingId(itemId);
     const result = await deleteItem(itemId);
@@ -90,7 +86,7 @@ export default function MyItems({ items: initialItems }: { items: Item[] }) {
       <div className="flex items-center justify-between mb-8 px-2">
         <div className="flex items-center gap-4">
           <div className="w-12 h-12 bg-orange-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-orange-100">
-            <FaUtensilsIcon />
+            <FaUtensils size={18} />
           </div>
           <div>
             <h2 className="text-3xl font-black italic uppercase tracking-tighter text-gray-900">
@@ -120,16 +116,21 @@ export default function MyItems({ items: initialItems }: { items: Item[] }) {
               : 'border-dashed border-gray-200 opacity-60'
             }`}
           >
-            {/* Info Section */}
             <div className="flex items-center gap-5">
-              <div
-                className={`w-16 h-16 rounded-3xl flex items-center justify-center font-black text-xl italic uppercase ${
-                  item.isAvailable ?
-                    'bg-orange-50 text-orange-600'
-                  : 'bg-gray-100 text-gray-400'
-                }`}
-              >
-                {item.category.slice(0, 2)}
+              {/* Item Image Display */}
+              <div className="w-16 h-16 rounded-3xl relative bg-orange-50 flex items-center justify-center overflow-hidden shrink-0">
+                {item.image ?
+                  <Image
+                    src={item.image}
+                    alt={item.name}
+                    fill
+                    className="object-cover"
+                    unoptimized
+                  />
+                : <span className="text-orange-200 font-black text-xl italic uppercase">
+                    {item.category.slice(0, 2)}
+                  </span>
+                }
               </div>
               <div>
                 <div className="flex items-center gap-3 mb-1">
@@ -149,13 +150,11 @@ export default function MyItems({ items: initialItems }: { items: Item[] }) {
               </div>
             </div>
 
-            {/* Controls Section */}
             <div className="flex items-center gap-3 ml-auto md:ml-0">
-              {/* Availability Toggle */}
               <button
                 onClick={() => handleToggle(item._id, item.isAvailable)}
                 disabled={processingId === item._id}
-                className={`cursor-pointer flex items-center gap-3 px-5 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${
+                className={`flex items-center gap-3 px-5 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${
                   item.isAvailable ?
                     'bg-green-50 text-green-600 hover:bg-green-600 hover:text-white shadow-sm'
                   : 'bg-gray-100 text-gray-400 hover:bg-gray-200'
@@ -173,7 +172,6 @@ export default function MyItems({ items: initialItems }: { items: Item[] }) {
                 }
               </button>
 
-              {/* Edit Button */}
               <Link
                 href={`/vandy-dashboard/edit-item/${item._id}`}
                 className="p-4 bg-gray-50 text-gray-400 rounded-2xl hover:text-blue-600 hover:bg-blue-50 transition-all hover:scale-110 shadow-sm"
@@ -181,7 +179,6 @@ export default function MyItems({ items: initialItems }: { items: Item[] }) {
                 <FaEdit size={18} />
               </Link>
 
-              {/* Delete Button */}
               <button
                 onClick={() => handleDelete(item._id)}
                 disabled={processingId === item._id}
@@ -196,22 +193,5 @@ export default function MyItems({ items: initialItems }: { items: Item[] }) {
         ))}
       </div>
     </div>
-  );
-}
-
-// Internal SVG Icon
-function FaUtensilsIcon() {
-  return (
-    <svg
-      stroke="currentColor"
-      fill="currentColor"
-      strokeWidth="0"
-      viewBox="0 0 448 512"
-      height="20"
-      width="20"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <path d="M416 0C400 0 288 32 288 176V288c0 35.3 28.7 64 64 64h32V480c0 17.7 14.3 32 32 32s32-14.3 32-32V320 160 32c0-17.7-14.3-32-32-32zM64 0C46.3 0 32 14.3 32 32V202.9c0 32.8 19.7 62.6 50 74.8l22 8.8V480c0 17.7 14.3 32 32 32s32-14.3 32-32V286.5l22-8.8c30.3-12.2 50-42 50-74.8V32c0-17.7-14.3-32-32-32s-32 14.3-32 32V176c0 8.8-7.2 16-16 16s-16-7.2-16-16V32c0-17.7-14.3-32-32-32s-32 14.3-32 32V176c0 8.8-7.2 16-16 16s-16-7.2-16-16V32C96 14.3 81.7 0 64 0z"></path>
-    </svg>
   );
 }

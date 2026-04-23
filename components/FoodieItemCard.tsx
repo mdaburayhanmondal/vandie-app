@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { FaStore, FaMapMarkerAlt, FaBan, FaStar } from 'react-icons/fa';
 import AddToCartButton from './AddToCartBtn';
 
@@ -11,6 +12,7 @@ interface FoodieItemCardProps {
     price: number;
     prePayAmount: number;
     category: string;
+    image?: string;
     description?: string;
     location?: string;
     ownerId: string;
@@ -41,35 +43,43 @@ export default function FoodieItemCard({ item }: FoodieItemCardProps) {
         : 'border-dashed border-gray-200 opacity-80'
       }`}
     >
-      {/* Image / Category Backdrop */}
+      {/* 1. Image Area / Actual Item Image */}
       <Link
         href={`/cravings/${itemId}`}
         className="h-48 bg-orange-100 relative overflow-hidden flex items-center justify-center"
       >
-        <span className="text-orange-300 font-black text-5xl opacity-30 italic uppercase group-hover:scale-110 transition-transform duration-500 select-none">
-          {item.category}
-        </span>
+        {item.image ?
+          <Image
+            src={item.image}
+            alt={item.name}
+            fill
+            className="object-cover group-hover:scale-110 transition-transform duration-700"
+            unoptimized
+          />
+        : <span className="text-orange-300 font-black text-5xl opacity-30 italic uppercase transition-transform duration-500 select-none">
+            {item.category}
+          </span>
+        }
 
         {/* Top Badges */}
-        <div className="absolute top-4 left-4 right-4 flex justify-between items-start">
+        <div className="absolute top-4 left-4 right-4 flex justify-between items-start z-10">
           <span className="bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-[10px] font-black text-orange-600 shadow-sm uppercase tracking-widest border border-orange-50">
             {item.category}
           </span>
 
-          {/* Rating Badge Overlay */}
           {reviews > 0 ?
-            <div className="bg-black/80 backdrop-blur-md px-2.5 py-1 rounded-xl text-white flex items-center gap-1 shadow-lg">
+            <div className="bg-black/80 backdrop-blur-md px-2.5 py-1 rounded-xl text-white flex items-center gap-1 shadow-lg border border-white/10">
               <FaStar className="text-orange-500" size={10} />
               <span className="text-[10px] font-black">{rating}</span>
             </div>
           : <span className="bg-white/90 backdrop-blur-sm px-2 py-1 rounded-lg text-[8px] font-black text-gray-400 uppercase tracking-widest">
-              0 Review
+              New Vandy
             </span>
           }
         </div>
 
         {isSoldOut && (
-          <div className="absolute inset-0 bg-gray-900/10 backdrop-blur-[2px] flex items-center justify-center">
+          <div className="absolute inset-0 bg-gray-900/10 backdrop-blur-[2px] flex items-center justify-center z-20">
             <span className="bg-red-500 text-white text-[10px] font-black uppercase px-4 py-2 rounded-full shadow-xl tracking-widest">
               Sold Out
             </span>
@@ -77,9 +87,8 @@ export default function FoodieItemCard({ item }: FoodieItemCardProps) {
         )}
       </Link>
 
-      {/* Content */}
+      {/* 2. Content */}
       <div className="p-6 flex-1 flex flex-col relative">
-        {/* Store Attribution */}
         <div className="absolute -top-4 left-6 z-10">
           <Link
             href={`/vandies/${vandyId}`}
@@ -97,7 +106,7 @@ export default function FoodieItemCard({ item }: FoodieItemCardProps) {
 
         <div className="mt-4 mb-4 flex-1">
           <Link href={`/cravings/${itemId}`}>
-            <h3 className="text-xl font-black text-gray-900 leading-tight mb-2 group-hover:text-orange-600 transition-colors">
+            <h3 className="text-xl font-black text-gray-900 leading-tight mb-2 group-hover:text-orange-600 transition-colors uppercase italic tracking-tighter">
               {item.name}
             </h3>
           </Link>
