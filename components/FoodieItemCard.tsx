@@ -61,7 +61,6 @@ export default function FoodieItemCard({ item }: FoodieItemCardProps) {
           </span>
         }
 
-        {/* Top Badges */}
         <div className="absolute top-4 left-4 right-4 flex justify-between items-start z-10">
           <span className="bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-[10px] font-black text-orange-600 shadow-sm uppercase tracking-widest border border-orange-50">
             {item.category}
@@ -89,7 +88,7 @@ export default function FoodieItemCard({ item }: FoodieItemCardProps) {
 
       {/* 2. Content */}
       <div className="p-6 flex-1 flex flex-col relative">
-        <div className="absolute -top-4 left-6 z-10">
+        <div className="absolute -top-4 left-6 z-50">
           <Link
             href={`/vandies/${vandyId}`}
             className="flex items-center gap-x-2 bg-white px-3 py-1.5 rounded-xl border border-gray-100 shadow-sm hover:border-orange-200 transition-all group/store"
