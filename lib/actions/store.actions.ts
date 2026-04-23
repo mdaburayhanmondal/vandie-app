@@ -11,34 +11,48 @@ import Order from '../models/order.model';
 export async function createStore(formData: FormData) {
   try {
     const { userId } = await auth();
-    if (!userId) {
-      throw new Error('You must be logged in to apply.');
-    }
+    if (!userId) throw new Error('Unauthorized');
+
+    await connectToDatabase();
 
     const storeName = formData.get('storeName') as string;
     const bio = formData.get('bio') as string;
     const location = formData.get('location') as string;
+    const coverImage = formData.get('coverImage') as string;
+    const existingStore = await Store.findOne({ ownerId: userId });
 
-    await connectToDatabase();
-    const existingStore = await Store.findOne({ ownerId: userId }).lean();
     if (existingStore) {
-      throw new Error(
-        'You already have an active store or pending application.',
+      await Store.findOneAndUpdate(
+        { ownerId: userId },
+        {
+          storeName,
+          bio,
+          location,
+          coverImage,
+          applicationStatus: 'pending',
+        },
       );
+    } else {
+      await Store.create({
+        ownerId: userId,
+        storeName,
+        bio,
+        location,
+        coverImage,
+        applicationStatus: 'pending',
+        isLive: false,
+        averageRating: 0,
+        totalReviews: 0,
+      });
+      await User.findOneAndUpdate({ clerkId: userId }, { role: 'vandy' });
     }
 
-    await Store.create({
-      ownerId: userId,
-      storeName,
-      bio,
-      location,
-      applicationStatus: 'pending',
-      isLive: false,
-    });
-  } catch (err) {
-    console.error('Error creating store:', err);
+    revalidatePath('/become-vandy');
+    return { success: true };
+  } catch (error) {
+    console.error('Create Store Error:', error);
+    return { success: false, error: 'Failed to submit application.' };
   }
-  redirect('/');
 }
 
 export async function fetchVandyApplications() {
